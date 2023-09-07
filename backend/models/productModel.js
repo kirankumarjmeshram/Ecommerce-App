@@ -1,6 +1,6 @@
-import mongoose, { Schema } from "mongoose";
+import mongoose from "mongoose";
 
-const productSchema = Schema({
+const productSchema = mongoose.Schema({
     user:{type:mongoose.Schema.Types.ObjectId,
     require: true,
     ref:"User",
