@@ -1,9 +1,15 @@
 import bcrypt from 'bcryptjs';
 const user = [
+    // {
+    //     name: `${process.env.NAME}`,
+    //     email: `${process.env.EMAIL}`,
+    //     password: bcrypt.hashSync(`${process.eventNames.PASS}`,10),
+    //     isAdmin:true,
+    // },
     {
-        name: `${process.env.NAME}`,
-        email: `${process.env.EMAIL}`,
-        password: bcrypt.hashSync(`${process.eventNames.PASS}`,10),
+        name: "kiran J ",
+        email: "kiran@gmail.com",
+        password: bcrypt.hashSync("123456",10),
         isAdmin:true,
     },
     {
