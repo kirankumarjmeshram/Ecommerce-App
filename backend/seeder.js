@@ -1,12 +1,12 @@
     import mongoose from "mongoose";
     import dotenv from 'dotenv';
     import colors from 'colors'
-    import users from "./data/user";
-    import products from "./data/products";
-    import User from "./models/userSchema";
-    import Product from "./models/productModel";
-    import Order from "./models/orderModel";
-    import connectDB from "./config/db";
+    import users from "./data/user.js";
+    import products from "./data/products.js";
+    import User from "./models/userSchema.js";
+    import Product from "./models/productModel.js";
+    import Order from "./models/orderModel.js";
+    import connectDB from "./config/db.js";
 
     dotenv.config();
 
@@ -57,3 +57,11 @@
         importData();
     }
 
+//console.log(process.argv[2]) 
+// node backend/seeder -d => return = [
+//     'C:\\Program Files\\nodejs\\node.exe',
+//     'C:\\Users\\Redmi\\Documents\\GitHub\\Ecommerce-App\\backend\\seeder',
+//     '-d'
+//   ]
+// therefore if(process.argv[2] === '-d') ie d will be 2nd index
+// if we do node backend/seeder -d -h then h will be 3rd index ans so on
