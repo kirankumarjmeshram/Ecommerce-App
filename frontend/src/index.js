@@ -17,9 +17,9 @@ import ProductScreen from "./screens/ProductScreen";
 //import "../node_modules/react-bootstrap/dist/react-bootstrap";
 const router = createBrowserRouter(
   createRoutesFromElements(
-    <Route path="/" element = {<App/>}>
-      <Route index ={true} path="/" element={<HomeScreen />}/>
-      <Route path="/product/:id" element={<ProductScreen />}/>
+    <Route path="/" element={<App />}>
+      <Route index={true} path="/" element={<HomeScreen />} />
+      <Route path="/product/:id" element={<ProductScreen />} />
     </Route>
   )
 )

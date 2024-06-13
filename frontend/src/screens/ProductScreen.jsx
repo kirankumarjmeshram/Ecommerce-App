@@ -12,6 +12,7 @@ const ProductScreen = () => {
     useEffect(()=>{
         const fetchProduct = async () =>{
             const {data} = await axios.get(`/api/products/${productId}`);
+            // console.log("data",data)
             setProduct(data);
         }
         fetchProduct();
@@ -58,7 +59,7 @@ const ProductScreen = () => {
                     </Row>
                 </ListGroup.Item>
                 <ListGroup.Item>
-                    <Button className="btn-block" type="buttom" disabled={product.countInStock ===0}>Add to Cart</Button>
+                    <Button className="btn-block" type="button" disabled={product.countInStock ===0}>Add to Cart</Button>
                 </ListGroup.Item>
                 </ListGroup>
             </Card>
