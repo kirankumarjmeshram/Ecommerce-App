@@ -11,7 +11,7 @@ const ProductScreen = () => {
 
     useEffect(()=>{
         const fetchProduct = async () =>{
-            const {data} = await axios.get(`/api/products/${productId}`);
+            const {data} = await axios.get(`http://localhost:5001/api/products/${productId}`);
             // console.log("data",data)
             setProduct(data);
         }
