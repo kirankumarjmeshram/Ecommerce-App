@@ -6,6 +6,7 @@ import Rating from "../components/Rating";
 // import axios from "axios";
 import { useGetProductDetailQuery } from "../slices/productsApiSlice";
 import Loader from "../components/Loader";
+import Message from "./Message";
 
 const ProductScreen = () => {
   //     const [product, setProduct] = useState([]);
@@ -36,7 +37,7 @@ const ProductScreen = () => {
       {isLoading ? (
         <Loader/>
       ) : error ? (
-        <div>error?.data?.message || error.error</div>
+        <Message variant='danger'> error?.data?.message || error.error</Message>
       ) : (
         <>
           <Row>
