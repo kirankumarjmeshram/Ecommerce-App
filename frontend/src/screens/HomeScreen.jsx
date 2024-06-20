@@ -4,7 +4,7 @@ import { Row, Col } from "react-bootstrap";
 import Product from "../components/Product";
 import { useGetProductsQuery } from "../slices/productsApiSlice";
 import Loader from "../components/Loader";
-import Message from "./Message";
+import Message from "../components/Message";
 
 const HomeScreen = () => {
   // const [products, setProducts] = useState([]);
