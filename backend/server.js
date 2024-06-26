@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import cookieParser from 'cookie-parser';
 
 dotenv.config();
 // console.log('Loaded environment variables:', process.env.PORT);
@@ -18,7 +19,10 @@ const app = express();
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
+//Cookie parser middleware
+app.use(cookieParser())
 app.use(cors());
+
 app.get('/', (req, res) => {
     res.send('Api is running');
 });
