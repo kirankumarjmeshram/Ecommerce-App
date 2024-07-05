@@ -1,7 +1,6 @@
 import express from 'express';
 const router = express.Router();
 import { getProducts, getProductById } from '../controllers/productController.js';
-import { logoutUser } from '../controllers/userController.js';
 
 // router.get('/', asyncHandler(async (req, res)=>{
 //     const products = await Product.find({}); // passing empty object to get all
@@ -20,7 +19,7 @@ import { logoutUser } from '../controllers/userController.js';
 // }));
 
 router.route('/').get(getProducts);
-router.post('/logout', logoutUser);
+router.route('/:id').get(getProductById);
 
 
 export default router;
