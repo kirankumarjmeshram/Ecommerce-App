@@ -44,6 +44,7 @@ const ProductScreen = () => {
     error,
   } = useGetProductDetailQuery(productId);
 
+
   const addToCartHandler = () => {
     dispatch(addToCart({ ...product, qty }));
     navigate("/cart");
