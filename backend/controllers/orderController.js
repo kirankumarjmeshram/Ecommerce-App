@@ -6,9 +6,7 @@ import Order from "../models/orderModel.js";
 // @acces Private
 const addOrderItems = asyncHandler(async (req, res) => {
   // res.send('add order item');
-  console.log('Order Items:', req.body.orderItems); // Log order items
-  console.log('Request Body:', req.body); // Log entire request body
-  
+
   const {
     orderItems,
     shippingAddress,
@@ -38,6 +36,7 @@ const addOrderItems = asyncHandler(async (req, res) => {
     });
     const createOrder = await order.save();
     res.status(201).json(createOrder);
+    // console.log("createOrder", createOrder)
   }
 });
 
@@ -52,10 +51,10 @@ const getMyOrders = asyncHandler(async (req, res) => {
 
 // @desc Get order by ID
 // @route GET/ api / orders/:id
-// @acces Private // admin
+// @acces Private 
 const getOrderById = asyncHandler(async (req, res) => {
   // res.send('get order by id');
-  const order = await Order.findOrderById(req.params.id).populate(
+  const order = await Order.findById(req.params.id).populate(
     "user",
     "name email"
   );
