@@ -22,7 +22,7 @@ router.post('/logout', logoutUser);
 router.post('/auth', authUser);
 router.route('/profile')
     .get(protect, getUserProfile)
-    .post(protect, updateUserProfile);//in /profile if get request then get user profile else if it post request then update user profile
+    .put(protect, updateUserProfile);//in /profile if get request then get user profile else if it post request then update user profile
 router.route('/:id')
     .delete(protect, admin, deleteUser)
     .get(protect, admin, getUserById)
