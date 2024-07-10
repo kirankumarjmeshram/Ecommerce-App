@@ -54,7 +54,6 @@ root.render(
         <RouterProvider router={router} />
       </PayPalScriptProvider>
     </Provider>
-    
   </React.StrictMode>
 );
 
