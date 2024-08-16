@@ -15,6 +15,7 @@ import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import store from "./store";
 
+import AdminRoute from "./components/AdminRoute";
 import HomeScreen from "./screens/HomeScreen";
 import ProductScreen from "./screens/ProductScreen";
 import CartScreen from "./screens/CartScreen";
@@ -26,6 +27,7 @@ import PaymentScreen from "./screens/PaymentScreen";
 import PlaceOrderScreen from "./screens/PlaceOrderScreen";
 import OrderScreen from "./screens/OrderScreen";
 import Profile from "./screens/Profile";
+import OrderListScreen from "./screens/admin/OrderListScreen";
 
 
 //import "../node_modules/react-bootstrap/dist/react-bootstrap";
@@ -44,6 +46,10 @@ const router = createBrowserRouter(
         <Route path="/placeorder" element={<PlaceOrderScreen/>}/>
         <Route path="/order/:id" element={<OrderScreen/>} />
         <Route path="/profile" element={<Profile/>} />
+      </Route>
+
+      <Route path="" element = {<AdminRoute />}>
+        <Route path="/admin/orderlist" element={<OrderListScreen/>}/>
       </Route>
     </Route>
   )
