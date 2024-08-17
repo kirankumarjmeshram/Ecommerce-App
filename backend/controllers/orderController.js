@@ -96,7 +96,18 @@ const updateOrderToPaid = asyncHandler(async (req, res) => {
 // @route PUT / api / orders/:id/delever
 // @acces Private/Admin
 const updateOrderToDelevered = asyncHandler(async (req, res) => {
-  res.send("update order to delever");
+  // res.send("update order to delever");
+  const order = await Order.findById(req.params.id);
+
+  if(order) {
+    order.isDelivered = true;
+    order.deliveredAt = Date.now();
+
+    const updatedOrder = await order.save();
+  }else{
+    res.status(404);
+    throw new Error("Order not found");
+  }
 });
 
 // @desc Get all orders
