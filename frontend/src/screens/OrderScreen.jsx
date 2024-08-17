@@ -19,7 +19,7 @@ import {
   useGetPayPalClientIdQuery,
 } from "../slices/ordersApiSlice";
 
-console.log("PayPalButtons", PayPalButtons);
+// console.log("PayPalButtons", PayPalButtons);
 
 const OrderScreen = () => {
   const { id: orderId } = useParams();
