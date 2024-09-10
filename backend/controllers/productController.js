@@ -35,15 +35,15 @@ const createProduct = asyncHandler(async (req, res) => {
         // category: req.body.category,
         // countInStock:0,
         // description: req.body.description,
-        name: "req.body.name",
-        price: "req.body.price",
+        name: "name",
+        price: 100,
         user: req.user.id,
-        image: "req.body.image",
-        brand: "req.body.brand",
-        category: "req.body.category",
+        image: "image",
+        brand: "brand",
+        category: "category",
         countInStock:0,
         numReviews:0,
-        description: "req.body.description",
+        description: "description",
     })
     console.log("product")
     const createProduct = await product.save();
