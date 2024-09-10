@@ -29,6 +29,7 @@ import OrderScreen from "./screens/OrderScreen";
 import Profile from "./screens/Profile";
 import OrderListScreen from "./screens/admin/OrderListScreen";
 import ProductListScreen from "./screens/admin/ProductListScreen";
+import ProductEditScreen from "./screens/admin/ProductEditScreen";
 
 
 //import "../node_modules/react-bootstrap/dist/react-bootstrap";
@@ -52,6 +53,7 @@ const router = createBrowserRouter(
       <Route path="" element = {<AdminRoute />}>
         <Route path="/admin/orderlist" element={<OrderListScreen/>}/>
         <Route path="/admin/productlist" element={<ProductListScreen/>}/>
+        <Route path="/admin/product/:id/edit" element={<ProductEditScreen/>} />
       </Route>
     </Route>
   )
