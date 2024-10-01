@@ -27,25 +27,25 @@ const getProductById = asyncHandler(async (req, res) => {
 // @access  Private/Admin
 const createProduct = asyncHandler(async (req, res) => {
   const product = new Product({
-    // name: req.body.name,
-    // price: req.body.price,
-    // user: req.user.id,
-    // image: req.body.image,
-    // brand: req.body.brand,
-    // category: req.body.category,
-    // countInStock:0,
-    // description: req.body.description,
-    name: "name",
-    price: 100,
+    name: req.body.name,
+    price: req.body.price,
     user: req.user.id,
-    image: "image",
-    brand: "brand",
-    category: "category",
+    image: req.body.image,
+    brand: req.body.brand,
+    category: req.body.category,
     countInStock: 0,
-    numReviews: 0,
-    description: "description",
+    description: req.body.description,
+    // name: "name",
+    // price: 100,
+    // user: req.user.id,
+    // image: "image",
+    // brand: "brand",
+    // category: "category",
+    // countInStock: 0,
+    // numReviews: 0,
+    // description: "description",
   });
-  console.log("product");
+  // console.log("product");
   const createProduct = await product.save();
 
   res.status(201).json(createProduct);
@@ -55,16 +55,17 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, brand, category, description, image, countInStock } =
+  const { name, price, description, image, brand, category, countInStock } =
     req.body;
   const product = await Product.findById(req.params.id);
+  console.log(name, price, description, image, brand, category, countInStock)
   if (product) {
     product.name = name;
     product.price = price;
-    product.brand = brand;
-    product.category = category;
     product.description = description;
     product.image = image;
+    product.brand = brand;
+    product.category = category;
     product.countInStock = countInStock;
 
     const updatedProduct = await product.save();

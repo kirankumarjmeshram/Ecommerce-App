@@ -12,26 +12,43 @@ import {
 
 const ProductEditScreen = () => {
   const { id: productId } = useParams();
-
-  const [name, setName] = useState();
-  const [price, setPrice] = useState();
-  const [image, setImage] = useState();
-  const [brand, setBrand] = useState();
-  const [category, setCategory] = useState();
-  const [countInStock, setCountInStock] = useState(0);
-  const [description, setDescription] = useState();
-
-  const {
-    data: product,
-    isLoading,
-    refetch,
-    error,
-  } = useGetProductDetailQuery(productId);
-  //   console.log(product);
-
-  const [updateProduct, { isLoading: lodinUpdate }] =
-    useUpdateProductMutation();
   const navigate = useNavigate();
+
+  const [name, setName] = useState('');
+  const [price, setPrice] = useState(0);
+  const [image, setImage] = useState('');
+  const [brand, setBrand] = useState('');
+  const [category, setCategory] = useState('');
+  const [countInStock, setCountInStock] = useState(0);
+  const [description, setDescription] = useState('');
+
+  const { data: product, isLoading, error } = useGetProductDetailQuery(productId);
+  const [updateProduct, { isLoading: loadingUpdate }] = useUpdateProductMutation();
+
+  const submitHandler = async (e) => {
+    e.preventDefault();
+    const updatedProduct = {
+      productId,
+      name,
+      price,
+      image, // If you plan to use this field
+      brand,
+      category,
+      countInStock,
+      description,
+    };
+    try {
+      const result = await updateProduct(updatedProduct);
+      if (result.error) {
+        toast.error(result.error.data.message || 'Error updating product');
+      } else {
+        toast.success('Product updated successfully');
+        navigate('/admin/productlist');
+      }
+    } catch (err) {
+      toast.error('An unexpected error occurred');
+    }
+  };
 
   useEffect(() => {
     if (product) {
@@ -45,22 +62,6 @@ const ProductEditScreen = () => {
     }
   }, [product]);
 
-  const submitHandler = async (e) => {
-    e.preventDefault();
-    const updateProduct = {
-        _id: productId,
-        name,
-        price,
-        image,
-        brand,
-        category,
-        countInStock,
-        description,
-    };
-    const result = await updateProduct(updateProduct);
-    if (result.data) {
-        
-  }
   return (
     <>
       <Link to="/admin/productlist" className="btn btn-light my-3">
@@ -68,21 +69,21 @@ const ProductEditScreen = () => {
       </Link>
       <FormContainer>
         <h1>Edit Product</h1>
-        {lodinUpdate && <Loader />}
+        {loadingUpdate && <Loader />}
         {isLoading ? (
           <Loader />
         ) : error ? (
-          <Message variant="danger">{error}</Message>
+          <Message variant="danger">{error.message || 'Failed to load product'}</Message>
         ) : (
           <Form onSubmit={submitHandler}>
             <Form.Group controlId="name" className="my-2">
               <Form.Label>Name</Form.Label>
               <Form.Control
-                type="name"
+                type="text"
                 placeholder="Enter Name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group>
             <Form.Group controlId="price" className="my-2">
               <Form.Label>Price</Form.Label>
@@ -91,34 +92,35 @@ const ProductEditScreen = () => {
                 placeholder="Enter Price"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group>
+            {/* Uncomment and use the image field if needed */}
             {/* <Form.Group controlId="image" className="my-2">
               <Form.Label>Image</Form.Label>
               <Form.Control
-                type="name"
-                placeholder="Enter Image"
+                type="text"
+                placeholder="Enter Image URL"
                 value={image}
                 onChange={(e) => setImage(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group> */}
             <Form.Group controlId="brand" className="my-2">
               <Form.Label>Brand</Form.Label>
               <Form.Control
-                type="name"
+                type="text"
                 placeholder="Enter Brand"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group>
             <Form.Group controlId="category" className="my-2">
               <Form.Label>Category</Form.Label>
               <Form.Control
-                type="name"
+                type="text"
                 placeholder="Enter Category"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group>
             <Form.Group controlId="countInStock" className="my-2">
               <Form.Label>Count In Stock</Form.Label>
@@ -127,16 +129,16 @@ const ProductEditScreen = () => {
                 placeholder="Enter Count In Stock"
                 value={countInStock}
                 onChange={(e) => setCountInStock(e.target.value)}
-              ></Form.Control>
+              />
             </Form.Group>
             <Form.Group controlId="description" className="my-2">
               <Form.Label>Description</Form.Label>
               <Form.Control
-                type="name"
+                type="text"
                 placeholder="Enter Description"
                 value={description}
-                onChange={(e) => setBrand(e.target.value)}
-              ></Form.Control>
+                onChange={(e) => setDescription(e.target.value)}
+              />
             </Form.Group>
             <Button type="submit" variant="primary" className="my-2">
               Update
