@@ -3,7 +3,7 @@
     import colors from 'colors'
     import users from "./data/user.js";
     import products from "./data/products.js";
-    import User from "./models/userSchema.js";
+    import User from "./models/userModel.js";
     import Product from "./models/productModel.js";
     import Order from "./models/orderModel.js";
     import connectDB from "./config/db.js";
@@ -23,7 +23,6 @@
             const adminUser = createUser[0]._id;
 
             const sampleProducts = products.map((product)=>{
-                // return theproducts with user = adminUser id as ref Id in product schema
                 return {...product, user:adminUser};
             });
             await Product.insertMany(sampleProducts);

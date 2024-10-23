@@ -1,7 +1,7 @@
 import mongoose from 'mongoose';
 
 const connectDB = async () => {
-  let db = "mongodb://localhost:27017/ecomdb"
+  const db = "mongodb://127.0.0.1:27017/ecomdb";
   try {
     // const conn = await mongoose.connect(process.env.MONGO_URI);
     const conn = await mongoose.connect(db);
@@ -13,4 +13,3 @@ const connectDB = async () => {
 };
 
 export default connectDB;
-//
