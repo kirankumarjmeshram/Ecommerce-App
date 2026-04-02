@@ -55,19 +55,22 @@ const createProduct = asyncHandler(async (req, res) => {
 // @route   PUT /api/products/:id
 // @access  Private/Admin
 const updateProduct = asyncHandler(async (req, res) => {
-  const { name, price, description, image, brand, category, countInStock } =
-    req.body;
-  const product = await Product.findById(req.params.id);
-  console.log(name, price, description, image, brand, category, countInStock)
+  // const { name, price, description, image, brand, category, countInStock } =
+  //   req.body;
+  const { id } = req.params;
+  const product = await Product.findById(id);
+  console.log("Hello")
+  console.log(id)
+  
   if (product) {
-    product.name = name;
-    product.price = price;
-    product.description = description;
-    product.image = image;
-    product.brand = brand;
-    product.category = category;
-    product.countInStock = countInStock;
-
+    product.name = req.body.name || product.name;
+    product.price = req.body.price || product.price;
+    product.image = req.body.image || product.image;
+    product.brand = req.body.brand || product.brand;
+    product.category = req.body.category || product.category;
+    product.countInStock = req.body.countInStock || product.countInStock;
+    product.description = req.body.description || product.description;
+    console.log("Update product")
     const updatedProduct = await product.save();
     res.json(updatedProduct);
   } else {

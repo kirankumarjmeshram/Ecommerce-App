@@ -14,6 +14,7 @@ const authUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
     // console.log(process.env.JWT_SECRET);
+    console.log("Hello",email, password)
     
     //await 
     if (user && (await user.matchPassword(password))) {

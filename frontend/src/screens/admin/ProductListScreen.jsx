@@ -70,11 +70,11 @@ const ProductListScreen = () => {
                   <td>{product.category}</td>
                   <td>{product.brand}</td>
                   <td>
-                    <Button 
+                    <Button
                       as={Link}
                       to={`/admin/product/${product._id}/edit`}
-                      variant='light'
-                      className='btn-sm mx-2'
+                      variant="light"
+                      className="btn-sm mx-2"
                     >
                       <FaEdit />
                     </Button>
