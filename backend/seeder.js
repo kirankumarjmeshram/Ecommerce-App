@@ -10,8 +10,6 @@
 
     dotenv.config();
 
-    connectDB();
-
     const importData = async () =>{
         try{
             await Order.deleteMany();
@@ -50,11 +48,17 @@
         }
     };
 
-    if(process.argv[2] === '-d'){
-        destroyData();
-    }else{
-        importData();
-    }
+    const runSeeder = async () => {
+        await connectDB();
+
+        if(process.argv[2] === '-d'){
+            await destroyData();
+        }else{
+            await importData();
+        }
+    };
+
+    runSeeder();
 
 //console.log(process.argv[2]) 
 // node backend/seeder -d => return = [

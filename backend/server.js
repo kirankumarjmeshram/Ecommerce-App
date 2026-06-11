@@ -12,8 +12,6 @@ import orderRoutes from './routes/orderRoutes.js'
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 const port = process.env.PORT || 5001;
 
-connectDB();
-
 const app = express();
 
 // Body parser middleware
@@ -40,6 +38,12 @@ res.send({clientId: process.env.PAYPAL_CLIENT_ID})
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(port, () => {
-    console.log(`server is running on port ${port}`)
-})
+const startServer = async () => {
+    await connectDB();
+
+    app.listen(port, () => {
+        console.log(`server is running on port ${port}`)
+    });
+};
+
+startServer();
