@@ -7,7 +7,6 @@ import {
   RouterProvider,
 } from "react-router-dom";
 //import "../node_modules/bootstrap/dist/css/bootstrap.css"
-import {PayPalScriptProvider } from '@paypal/react-paypal-js';
 import "./assets/styles/bootstrap.custom.css";
 import "./assets/styles/index.css";
 import App from "./App";
@@ -64,9 +63,7 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <Provider store={store}>
-      <PayPalScriptProvider deferLoading={true}>
-        <RouterProvider router={router} />
-      </PayPalScriptProvider>
+      <RouterProvider router={router} />
     </Provider>
   </React.StrictMode>
 );
