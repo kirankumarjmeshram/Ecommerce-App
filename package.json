@@ -20,16 +20,17 @@
     "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "ecommerce-app": "file:",
-    "express": "^4.20.0",
+    "express": "^4.22.2",
     "fs": "^0.0.1-security",
     "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.0.0",
-    "mongoose": "^7.5.0",
-    "path": "^0.12.7"
+    "mongodb": "^6.21.0",
+    "mongoose": "^7.8.11",
+    "path": "^0.12.7",
+    "razorpay": "^2.9.8"
   },
   "devDependencies": {
-    "concurrently": "^8.2.1",
-    "dotenv": "^16.4.5",
+    "concurrently": "^8.2.2",
+    "dotenv": "^16.6.1",
     "nodemon": "^3.0.1"
   }
 }
