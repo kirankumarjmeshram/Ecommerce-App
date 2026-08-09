@@ -1,30 +1,27 @@
 import { Link } from "react-router-dom";
 import { Table, Button, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { FaTimes, FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash } from "react-icons/fa";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import {
   useGetProductsQuery,
-  useCreateProductMutation,
+  useDeleteProductMutation,
 } from "../../slices/productsApiSlice";
 
 const ProductListScreen = () => {
-  const { data: products, isLoading, error, refetch } = useGetProductsQuery();
+  const { data: products, isLoading, error } = useGetProductsQuery();
 
-  const [createProduct, { isLoading: loadingCreate }] =
-    useCreateProductMutation();
+  const [deleteProduct, { isLoading: loadingDelete }] =
+    useDeleteProductMutation();
 
-  const deleteHandler = function (id) {
-    console.log("delete" + " " + id);
-  };
-  const createProductHandler = async () => {
-    if (window.confirm("Are yo sure u want to create new product")) {
+  const deleteHandler = async (id) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
       try {
-        await createProduct();
-        refetch();
+        await deleteProduct(id).unwrap();
+        toast.success('Product deleted successfully');
       } catch (err) {
-        toast.error(err?.data?.message || err.error);
+        toast.error(err?.data?.message || err?.error || 'Unable to delete product');
       }
     }
   };
@@ -35,12 +32,12 @@ const ProductListScreen = () => {
           <h1>Products</h1>
         </Col>
         <Col className="text-end">
-          <Button className="btn-sm m-3" onClick={createProductHandler}>
+          <Button as={Link} to="/admin/product/create" className="btn-sm m-3">
             <FaEdit /> create Product
           </Button>
         </Col>
       </Row>
-      {loadingCreate && <Loader />}
+      {loadingDelete && <Loader />}
       {isLoading ? (
         <Loader />
       ) : error ? (
