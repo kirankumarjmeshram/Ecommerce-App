@@ -79,6 +79,18 @@ web_modules/
 .env.production.local
 .env.local
 
+# Local seed data and sensitive backend configuration
+backend/seeder.js
+backend/config/db.js
+
+# Private keys, certificates, and service-account credentials
+*.pem
+*.key
+*.p12
+*.pfx
+service-account*.json
+*-credentials.json
+
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache

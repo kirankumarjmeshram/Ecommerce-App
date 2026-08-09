@@ -9,6 +9,7 @@ import { logout } from './authSlice';
 // })
 const baseQuery = fetchBaseQuery({
   baseUrl: BASE_URL,
+  credentials: 'include',
 });
 
 async function baseQueryWithAuth(args, api, extra) {
