@@ -12,13 +12,15 @@ Response shapes below are representative rather than schemas; current controller
 
 | Method | Path | Auth / admin | Purpose | Body / response | Known issues |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/api/users` | Public | Register | `{name,email,password}` -> user info; sets cookie | Input validation is limited |
-| POST | `/api/users/auth` | Public | Login | `{email,password}` -> user info; sets cookie | Controller currently logs submitted email/password: P0 |
+| POST | `/api/users` | Public | Register | `{name,email,password}` -> safe user info; sets cookie | Name/email/password are validated; email is normalized and unique |
+| POST | `/api/users/auth` | Public | Login | `{email,password}` -> safe user info; sets cookie | Password is never returned or logged |
 | POST | `/api/users/logout` | Public | Clear JWT cookie | `{ message }` | No server token revocation |
 | GET | `/api/users/profile` | Protected | Current profile | -> user | — |
-| PUT | `/api/users/profile` | Protected | Update profile | `{name,email,password?}` -> user | Limited validation |
-| GET | `/api/users` | Protected + admin | List users | Placeholder text response | Not implemented |
-| GET/PUT/DELETE | `/api/users/:id` | Protected + admin | User management | Placeholder text response | Not implemented |
+| PUT | `/api/users/profile` | Protected | Update profile | `{name,email,password?}` -> safe user | Duplicate email returns controlled `400` |
+| GET | `/api/users` | Protected + admin | List users | -> safe user list sorted newest first | Password hashes excluded |
+| GET | `/api/users/:id` | Protected + admin | Get one user | -> safe user | Invalid ID `400`, missing user `404` |
+| PUT | `/api/users/:id` | Protected + admin | Edit name, email, role | `{name?,email?,isAdmin?}` -> safe user | Explicit field whitelist; duplicate email `400` |
+| DELETE | `/api/users/:id` | Protected + admin | Delete user | `{ message }` | Current admin cannot delete their own account; orders are not cascaded |
 
 ## Products
 

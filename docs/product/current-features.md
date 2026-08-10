@@ -10,7 +10,7 @@
 | Orders | Partial | Create, user list, detail, admin list; ownership/delivery bugs |
 | Razorpay payment | Implemented | Provider-order creation and signature verification |
 | Admin products | Implemented, needs fixes | Inventory zero handling needs correction |
-| Admin users | Not implemented | Placeholder controllers and no matching screen |
+| Admin users | Implemented | Admin-only list, detail/edit, role update, and deletion with self-delete protection |
 | Admin orders | Partial | Delivery update needs repair |
 | Reviews/search/pagination | Not implemented | Schema has reviews but no exposed workflow/search/pagination |
 | Analytics/observability/deployment | Not implemented | No dashboard, probes/metrics, or deployment setup |

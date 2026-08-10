@@ -30,8 +30,45 @@ export const userApiSlice = apiSlice.injectEndpoints({
                 method: 'PUT',
                 body: data,
             })
-        })
+        }),
+        getUsers: builder.query({
+            query: () => ({ url: USERS_URL }),
+            providesTags: (result) => result
+                ? [...result.map(({ _id }) => ({ type: 'User', id: _id })), { type: 'User', id: 'LIST' }]
+                : [{ type: 'User', id: 'LIST' }],
+        }),
+        getUserDetails: builder.query({
+            query: (userId) => ({ url: `${USERS_URL}/${userId}` }),
+            providesTags: (result, error, userId) => [{ type: 'User', id: userId }],
+        }),
+        updateUser: builder.mutation({
+            query: ({ userId, ...data }) => ({
+                url: `${USERS_URL}/${userId}`,
+                method: 'PUT',
+                body: data,
+            }),
+            invalidatesTags: (result, error, { userId }) => [
+                { type: 'User', id: userId },
+                { type: 'User', id: 'LIST' },
+            ],
+        }),
+        deleteUser: builder.mutation({
+            query: (userId) => ({ url: `${USERS_URL}/${userId}`, method: 'DELETE' }),
+            invalidatesTags: (result, error, userId) => [
+                { type: 'User', id: userId },
+                { type: 'User', id: 'LIST' },
+            ],
+        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterMutation, useLogoutMutation, useProfileMutation } = userApiSlice;
+export const {
+    useDeleteUserMutation,
+    useGetUserDetailsQuery,
+    useGetUsersQuery,
+    useLoginMutation,
+    useRegisterMutation,
+    useLogoutMutation,
+    useProfileMutation,
+    useUpdateUserMutation,
+} = userApiSlice;
