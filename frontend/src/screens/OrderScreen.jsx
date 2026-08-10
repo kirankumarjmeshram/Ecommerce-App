@@ -51,10 +51,18 @@ const OrderScreen = () => {
         theme: { color: "#0d6efd" },
       });
 
-      checkout.on("payment.failed", () => toast.error("Payment failed. Your order remains unpaid."));
+      checkout.on("payment.failed", (response) => {
+        toast.error(response?.error?.description || "Payment failed. Your order remains unpaid.");
+      });
       checkout.open();
     } catch (err) {
-      toast.error(err?.data?.message || err?.error || err?.message || "Unable to start Razorpay Checkout");
+      toast.error(
+        err?.data?.error ||
+        err?.data?.message ||
+        err?.error ||
+        err?.message ||
+        "Unable to start Razorpay Checkout"
+      );
     }
   };
 
