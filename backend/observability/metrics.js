@@ -2,6 +2,8 @@ import client from 'prom-client';
 
 const register = new client.Registry();
 client.collectDefaultMetrics({ register });
+const MAX_HISTORY_BUCKETS = 60;
+const rollingHistory = [];
 
 const httpRequestsTotal = new client.Counter({
   name: 'http_requests_total', help: 'Total completed HTTP requests',
@@ -28,15 +30,111 @@ const redisCacheErrorsTotal = new client.Counter({
 
 const getRouteLabel = (req) => (req.route?.path ? `${req.baseUrl || ''}${req.route.path}` : 'unmatched');
 
+const getCurrentBucket = () => {
+  const startedAt = Math.floor(Date.now() / 60000) * 60000;
+  let bucket = rollingHistory.at(-1);
+
+  if (!bucket || bucket.timestamp !== startedAt) {
+    bucket = {
+      timestamp: startedAt,
+      requests: 0,
+      errors: 0,
+      latencyTotalMs: 0,
+      latencyCount: 0,
+      redisHits: 0,
+      redisMisses: 0,
+      redisErrors: 0,
+    };
+    rollingHistory.push(bucket);
+    if (rollingHistory.length > MAX_HISTORY_BUCKETS) rollingHistory.shift();
+  }
+
+  return bucket;
+};
+
 const recordHttpMetrics = (req, res, durationSeconds) => {
   const labels = { method: req.method, route: getRouteLabel(req), status_code: String(res.statusCode) };
   httpRequestsTotal.inc(labels);
   httpRequestDurationSeconds.observe(labels, durationSeconds);
+  const bucket = getCurrentBucket();
+  bucket.requests += 1;
+  bucket.latencyTotalMs += durationSeconds * 1000;
+  bucket.latencyCount += 1;
+
   if (res.statusCode >= 500) httpErrorsTotal.inc(labels);
+  if (res.statusCode >= 500) bucket.errors += 1;
 };
 
-const recordRedisCacheHit = (cache) => redisCacheHitsTotal.inc({ cache });
-const recordRedisCacheMiss = (cache) => redisCacheMissesTotal.inc({ cache });
-const recordRedisCacheError = (cache) => redisCacheErrorsTotal.inc({ cache });
+const recordRedisCacheHit = (cache) => {
+  redisCacheHitsTotal.inc({ cache });
+  getCurrentBucket().redisHits += 1;
+};
+const recordRedisCacheMiss = (cache) => {
+  redisCacheMissesTotal.inc({ cache });
+  getCurrentBucket().redisMisses += 1;
+};
+const recordRedisCacheError = (cache) => {
+  redisCacheErrorsTotal.inc({ cache });
+  getCurrentBucket().redisErrors += 1;
+};
 
-export { recordHttpMetrics, recordRedisCacheError, recordRedisCacheHit, recordRedisCacheMiss, register };
+const getMetricTotal = async (metric) => {
+  const metricData = await metric.get();
+  return metricData.values.reduce((total, sample) => total + sample.value, 0);
+};
+
+const getHistogramTotals = async () => {
+  const metricData = await httpRequestDurationSeconds.get();
+  return metricData.values.reduce((totals, sample) => {
+    if (sample.metricName === 'http_request_duration_seconds_sum') totals.sumSeconds += sample.value;
+    if (sample.metricName === 'http_request_duration_seconds_count') totals.count += sample.value;
+    return totals;
+  }, { sumSeconds: 0, count: 0 });
+};
+
+const getObservabilitySnapshot = async () => {
+  const [requests, errors, hits, misses, cacheErrors, latency] = await Promise.all([
+    getMetricTotal(httpRequestsTotal),
+    getMetricTotal(httpErrorsTotal),
+    getMetricTotal(redisCacheHitsTotal),
+    getMetricTotal(redisCacheMissesTotal),
+    getMetricTotal(redisCacheErrorsTotal),
+    getHistogramTotals(),
+  ]);
+
+  const cacheReads = hits + misses;
+  return {
+    http: {
+      requests,
+      errors,
+      errorRate: requests ? Number(((errors / requests) * 100).toFixed(2)) : 0,
+      averageLatencyMs: latency.count ? Number(((latency.sumSeconds / latency.count) * 1000).toFixed(2)) : 0,
+    },
+    cache: {
+      hits,
+      misses,
+      errors: cacheErrors,
+      hitRatio: cacheReads ? Number(((hits / cacheReads) * 100).toFixed(2)) : 0,
+    },
+    history: rollingHistory.map((bucket) => ({
+      timestamp: new Date(bucket.timestamp).toISOString(),
+      requests: bucket.requests,
+      errors: bucket.errors,
+      averageLatencyMs: bucket.latencyCount
+        ? Number((bucket.latencyTotalMs / bucket.latencyCount).toFixed(2))
+        : 0,
+      redisHits: bucket.redisHits,
+      redisMisses: bucket.redisMisses,
+      redisErrors: bucket.redisErrors,
+    })),
+  };
+};
+
+export {
+  getObservabilitySnapshot,
+  recordHttpMetrics,
+  recordRedisCacheError,
+  recordRedisCacheHit,
+  recordRedisCacheMiss,
+  register,
+};

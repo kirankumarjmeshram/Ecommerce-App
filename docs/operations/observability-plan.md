@@ -19,9 +19,19 @@ rate(redis_cache_hits_total[5m]) /
 
 `/metrics` is locally accessible for development. Production access should later be restricted by network or infrastructure controls.
 
+## Implemented: Phase 2 admin live dashboard
+
+`GET /api/admin/observability/summary` is a JSON endpoint protected by the existing `protect` and `admin` middleware. It is consumed by the admin-only React route `/admin/observability`; React does not fetch or parse `/metrics`.
+
+The summary exposes only safe operational values: overall/API/MongoDB/Redis status, uptime, HTTP request and `5xx` totals/error rate/average latency, Redis hit/miss/error totals and ratio, process RSS memory, Node.js version, and a bounded rolling request history.
+
+The rolling history stores at most 60 one-minute buckets in backend process memory. It is intentionally live-only, bounded, and reset by backend restart. It is not historical monitoring storage. Recharts charts display genuine requests, average latency, `5xx` errors, and Redis hit/miss activity when live data exists.
+
+The dashboard does not expose raw logs, Prometheus text, environment variables, credentials, or payment/authentication data. P95 latency is not shown: it should be calculated later in Prometheus/Grafana with `histogram_quantile`.
+
 ## Planned: later phases
 
-1. Grafana Cloud dashboards and production scraping.
+1. Grafana Cloud dashboards, persistent storage, and production scraping.
 2. Sentry error tracking.
 3. Alerting and runbooks.
 4. OpenTelemetry only if cross-service tracing becomes necessary.

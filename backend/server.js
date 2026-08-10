@@ -10,6 +10,7 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
+import adminObservabilityRoutes from './routes/adminObservabilityRoutes.js';
 import { connectRedis, disconnectRedis, isRedisReady } from './config/redis.js';
 import { disconnectDB, isMongoReady } from './config/db.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
@@ -80,6 +81,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/users', userRoutes)
 app.use('/api/orders', orderRoutes)
 app.use('/api/payments', paymentRoutes)
+app.use('/api/admin/observability', adminObservabilityRoutes)
 
 app.use(notFound);
 app.use(errorHandler);
