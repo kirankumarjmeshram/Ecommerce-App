@@ -1,11 +1,28 @@
 import asyncHandler from "../middleware/asyncHandler.js";
 import Product from "../models/productModel.js";
+import {
+  createProductCacheKey,
+  createProductListCacheKey,
+  invalidateProductCache,
+  invalidateProductListCaches,
+  readCache,
+  writeCache,
+} from '../utils/productCache.js';
 
 // @desc    Fetch all products
 // @route   GET /api/products
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
+  const cacheKey = createProductListCacheKey(req.query);
+  const cachedProducts = await readCache(cacheKey);
+  if (cachedProducts) {
+    res.set('X-Cache', 'HIT');
+    return res.json(cachedProducts);
+  }
+
   const products = await Product.find({});
+  res.set('X-Cache', 'MISS');
+  await writeCache(cacheKey, products);
   res.json(products);
 });
 
@@ -13,8 +30,17 @@ const getProducts = asyncHandler(async (req, res) => {
 // @route   GET /api/products/:id
 // @access  Public
 const getProductById = asyncHandler(async (req, res) => {
+  const cacheKey = createProductCacheKey(req.params.id);
+  const cachedProduct = await readCache(cacheKey);
+  if (cachedProduct) {
+    res.set('X-Cache', 'HIT');
+    return res.json(cachedProduct);
+  }
+
   const product = await Product.findById(req.params.id);
   if (product) {
+    res.set('X-Cache', 'MISS');
+    await writeCache(cacheKey, product);
     res.json(product);
   } else {
     res.status(404);
@@ -48,6 +74,8 @@ const createProduct = asyncHandler(async (req, res) => {
   // console.log("product");
   const createProduct = await product.save();
 
+  await invalidateProductListCaches();
+
   res.status(201).json(createProduct);
 });
 
@@ -72,6 +100,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.description = req.body.description || product.description;
     console.log("Update product")
     const updatedProduct = await product.save();
+    await invalidateProductCache(product._id);
+    await invalidateProductListCaches();
     res.json(updatedProduct);
   } else {
     res.status(404).json({ message: "Product not found" });
@@ -90,6 +120,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await product.deleteOne();
+  await invalidateProductCache(product._id);
+  await invalidateProductListCaches();
   res.json({ message: 'Product removed' });
 });
 

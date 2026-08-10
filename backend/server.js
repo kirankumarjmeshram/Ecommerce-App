@@ -10,6 +10,7 @@ import productRoutes from './routes/productRoutes.js';
 import userRoutes from './routes/userRoutes.js'
 import orderRoutes from './routes/orderRoutes.js'
 import paymentRoutes from './routes/paymentRoutes.js'
+import { connectRedis } from './config/redis.js';
 import { notFound, errorHandler } from './middleware/errorMiddleware.js';
 const port = process.env.PORT || 5001;
 
@@ -41,6 +42,7 @@ app.use(errorHandler);
 
 const startServer = async () => {
     await connectDB();
+    connectRedis();
 
     app.listen(port, () => {
         console.log(`server is running on port ${port}`)
