@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { logger } from '../observability/logger.js';
 
 const connectDB = async () => {
   const db = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ecomdb';
@@ -9,12 +10,19 @@ const connectDB = async () => {
 
   try {
     const conn = await mongoose.connect(db);
-    console.log(`MongoDB Connected: ${conn.connection.host}`);
+    logger.info({ databaseHost: conn.connection.host }, 'MongoDB connected');
     return conn;
   } catch (error) {
-    console.error(`Error: ${error.message}`);
+    logger.fatal({ err: error }, 'MongoDB connection failed');
     process.exit(1);
   }
 };
 
+const isMongoReady = () => mongoose.connection.readyState === 1;
+
+const disconnectDB = async () => {
+  if (mongoose.connection.readyState !== 0) await mongoose.connection.close();
+};
+
+export { disconnectDB, isMongoReady };
 export default connectDB;

@@ -6,6 +6,7 @@
 | --- | --- | --- |
 | Product list/create/edit/delete | Available | Server enforces admin middleware; stock-zero handling needs repair |
 | Order list | Available | Admin-only API/screen |
+| System observability | Available | `/admin/observability` shows safe live process/API/MongoDB/Redis/cache status and charts; it is not business analytics or persistent monitoring |
 | Mark delivered | Partial/broken | Schema uses `isDeliverd`; controller writes `isDelivered` and does not respond |
 | User list/detail/update/delete | Not implemented | Routes/controllers return placeholders; header link has no matching screen |
 

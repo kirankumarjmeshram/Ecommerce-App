@@ -1,13 +1,22 @@
 import { getRedisClient, isRedisReady } from '../config/redis.js';
+import { logger } from '../observability/logger.js';
+import { recordRedisCacheError, recordRedisCacheHit, recordRedisCacheMiss } from '../observability/metrics.js';
 
 const PRODUCT_KEY_PREFIX = 'ecommerce:product:';
 const PRODUCT_LIST_KEY_PREFIX = 'ecommerce:products:list:';
 const DEFAULT_PRODUCT_TTL = 300;
 
-const logRedis = (...message) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Redis]', ...message);
-  }
+const getCacheType = (key) => (key.startsWith(PRODUCT_LIST_KEY_PREFIX) ? 'product_list' : 'product_detail');
+
+const logCacheFailure = ({ cache, operation, requestId, error }) => {
+  recordRedisCacheError(cache);
+  logger.warn({
+    ...(requestId ? { requestId } : {}),
+    ...(error ? { err: error } : {}),
+    service: 'redis',
+    cache,
+    operation,
+  }, 'Redis cache operation failed; using MongoDB fallback where applicable');
 };
 
 const getProductCacheTtl = () => {
@@ -29,46 +38,46 @@ const createProductListCacheKey = (query = {}) => {
   return `${PRODUCT_LIST_KEY_PREFIX}${signature || 'all'}`;
 };
 
-const readCache = async (key) => {
-  if (!isRedisReady()) return null;
+const readCache = async (key, { requestId } = {}) => {
+  const cache = getCacheType(key);
+  if (!isRedisReady()) {
+    if (getRedisClient()) logCacheFailure({ cache, operation: 'read_unavailable', requestId });
+    return null;
+  }
 
   try {
     const cachedValue = await getRedisClient().get(key);
     if (!cachedValue) {
-      logRedis('MISS', key);
+      recordRedisCacheMiss(cache);
       return null;
     }
 
     try {
       const data = JSON.parse(cachedValue);
-      logRedis('HIT', key);
+      recordRedisCacheHit(cache);
       return data;
     } catch {
-      logRedis('Invalid cached JSON, refreshing', key);
+      logCacheFailure({ cache, operation: 'parse', requestId });
       await getRedisClient().del(key).catch(() => {});
       return null;
     }
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] unavailable, using MongoDB:', error.message);
-    }
+    logCacheFailure({ cache, operation: 'read', requestId, error });
     return null;
   }
 };
 
-const writeCache = async (key, data) => {
+const writeCache = async (key, data, { requestId } = {}) => {
   if (!isRedisReady()) return;
 
   try {
     await getRedisClient().set(key, JSON.stringify(data), { EX: getProductCacheTtl() });
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] cache write failed:', error.message);
-    }
+    logCacheFailure({ cache: getCacheType(key), operation: 'write', requestId, error });
   }
 };
 
-const invalidateProductListCaches = async () => {
+const invalidateProductListCaches = async ({ requestId } = {}) => {
   if (!isRedisReady()) return;
 
   try {
@@ -84,24 +93,18 @@ const invalidateProductListCaches = async () => {
       }
     } while (cursor !== '0');
 
-    logRedis('Invalidated product list cache');
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] product-list invalidation failed:', error.message);
-    }
+    logCacheFailure({ cache: 'product_list', operation: 'invalidate', requestId, error });
   }
 };
 
-const invalidateProductCache = async (productId) => {
+const invalidateProductCache = async (productId, { requestId } = {}) => {
   if (!isRedisReady()) return;
 
   try {
     await getRedisClient().del(createProductCacheKey(productId));
-    logRedis('Invalidated product', productId);
   } catch (error) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] product invalidation failed:', error.message);
-    }
+    logCacheFailure({ cache: 'product_detail', operation: 'invalidate', requestId, error });
   }
 };
 
