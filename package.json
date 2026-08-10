@@ -1,40 +1,17 @@
 {
   "name": "ecommerce-app",
   "version": "1.0.0",
-  "description": "E-commerce application using MERN Stack",
-  "type": "module",
-  "main": "server.js",
+  "description": "Full-stack MERN ecommerce application",
+  "private": true,
   "scripts": {
-    "start": "node backend/server.js",
-    "server": "nodemon backend/server.js",
-    "client": "npm start --prefix frontend",
-    "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "data:import": "node backend/seeder.js",
-    "data:destroy": "node backend/seeder.js -d"
+    "backend": "npm run dev --prefix backend",
+    "frontend": "npm start --prefix frontend",
+    "dev": "concurrently \"npm run backend\" \"npm run frontend\"",
+    "install:all": "npm install --prefix backend && npm install --prefix frontend"
   },
   "author": "Kirankumar J Meshram",
   "license": "ISC",
-  "dependencies": {
-    "bcryptjs": "^2.4.3",
-    "colors": "^1.4.0",
-    "cookie-parser": "^1.4.6",
-    "cors": "^2.8.5",
-    "ecommerce-app": "file:",
-    "express": "^4.22.2",
-    "fs": "^0.0.1-security",
-    "jsonwebtoken": "^9.0.2",
-    "mongodb": "^6.21.0",
-    "mongoose": "^7.8.11",
-    "path": "^0.12.7",
-    "pino": "^10.3.1",
-    "pino-http": "^11.0.0",
-    "prom-client": "^15.1.3",
-    "razorpay": "^2.9.8",
-    "redis": "^6.2.0"
-  },
   "devDependencies": {
-    "concurrently": "^8.2.2",
-    "dotenv": "^16.6.1",
-    "nodemon": "^3.0.1"
+    "concurrently": "^8.2.2"
   }
 }
