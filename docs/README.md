@@ -18,11 +18,12 @@ This folder describes the repository as it exists today. It is an onboarding and
 | MongoDB and Redis | [Data](database/data-model.md) |
 | Auth and known security concerns | [Security](security/authentication-authorization.md) |
 | Razorpay payment flow | [Payments](payments/razorpay-flow.md) |
+| Live API, MongoDB, Redis, and runtime health | [Observability](operations/observability-plan.md) |
 | Test status | [Testing](testing/test-strategy.md) |
 
 ## Planned architecture and operations
 
-[Health/readiness](operations/health-and-readiness-plan.md), [observability](operations/observability-plan.md), and the [roadmap](product/roadmap.md) are plans. They are not implemented endpoints or services.
+[Health/readiness](operations/health-and-readiness-plan.md) and the Phase 1/2 observability foundation are implemented. [Grafana Cloud, persistent metrics, Sentry, alerting, and OpenTelemetry](operations/observability-plan.md) remain planned. The [roadmap](product/roadmap.md) contains other planned work.
 
 ## Maintaining these docs
 
