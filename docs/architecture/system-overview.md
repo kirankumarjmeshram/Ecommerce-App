@@ -12,6 +12,7 @@ React 18 + React Router + Redux Toolkit / RTK Query
         v
 Express API (:5001)
   |-- controllers + middleware
+  |-- Pino request logs + Prometheus metrics
   |-- MongoDB Atlas via Mongoose       (source of truth)
   |-- Redis via node-redis             (optional product-read cache)
   `-- Razorpay SDK / Checkout          (payment provider)
@@ -21,6 +22,7 @@ Express API (:5001)
 
 - **React** renders customer/admin screens, holds non-secret session information and a browser-local cart, and uses RTK Query for server requests.
 - **Express** authenticates cookies, authorizes roles, performs product/order/payment work, and owns payment-secret access.
+- **Observability foundation** assigns request IDs, logs safe request completion/error fields, exposes liveness/readiness, and publishes Prometheus metrics.
 - **MongoDB** owns users, products, reviews, orders, payment-result metadata, and durable order state.
 - **Redis** holds disposable product detail/list representations only. A miss or outage falls back to MongoDB.
 - **Razorpay** creates provider payment orders and hosts checkout. The API verifies the returned signature before marking an order paid.
