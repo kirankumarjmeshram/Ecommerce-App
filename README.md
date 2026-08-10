@@ -1,5 +1,9 @@
 # 🛒 Ecommerce-App (MERN Stack)
 
+## Documentation
+
+Current engineering documentation, architecture, API inventory, security notes, and planned work are in [docs/README.md](docs/README.md).
+
 A full-stack **E-commerce Web Application** built using the MERN stack (MongoDB, Express, React, Node.js).
 This project demonstrates end-to-end functionality of an online shopping platform including authentication, product management, cart, and order processing.
 
