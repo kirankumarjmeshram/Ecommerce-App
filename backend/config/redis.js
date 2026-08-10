@@ -1,16 +1,11 @@
 import { createClient } from 'redis';
+import { logger } from '../observability/logger.js';
 
 let redisClient;
 
-const logRedis = (...message) => {
-  if (process.env.NODE_ENV === 'development') {
-    console.log('[Redis]', ...message);
-  }
-};
-
 const connectRedis = () => {
   if (!process.env.REDIS_URL) {
-    logRedis('REDIS_URL is not configured; using MongoDB only');
+    logger.warn({ service: 'redis' }, 'Redis is not configured; cache is disabled');
     return;
   }
 
@@ -18,16 +13,12 @@ const connectRedis = () => {
   try {
     redisProtocol = new URL(process.env.REDIS_URL).protocol;
   } catch {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] REDIS_URL is invalid; using MongoDB only');
-    }
+    logger.warn({ service: 'redis' }, 'Redis URL is invalid; cache is disabled');
     return;
   }
 
   if (!['redis:', 'rediss:'].includes(redisProtocol)) {
-    if (process.env.NODE_ENV === 'development') {
-      console.error('[Redis] REDIS_URL must use redis:// or rediss://; using MongoDB only');
-    }
+    logger.warn({ service: 'redis' }, 'Redis URL must use redis or rediss protocol; cache is disabled');
     return;
   }
 
@@ -35,23 +26,19 @@ const connectRedis = () => {
     try {
       redisClient = createClient({ url: process.env.REDIS_URL });
     } catch (error) {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Redis] client setup failed; using MongoDB only:', error.message);
-      }
+      logger.warn({ err: error, service: 'redis' }, 'Redis client setup failed; cache is disabled');
       redisClient = undefined;
       return;
     }
     redisClient.on('error', (error) => {
-      if (process.env.NODE_ENV === 'development') {
-        console.error('[Redis] unavailable, using MongoDB:', error.message);
-      }
+      logger.warn({ err: error, service: 'redis' }, 'Redis unavailable; cache is degraded');
     });
-    redisClient.on('ready', () => logRedis('Connected'));
+    redisClient.on('ready', () => logger.info({ service: 'redis' }, 'Redis connected'));
   }
 
   if (!redisClient.isOpen) {
-    redisClient.connect().catch(() => {
-      // The error listener logs a safe message and the API continues without cache.
+    redisClient.connect().catch((error) => {
+      logger.warn({ err: error, service: 'redis' }, 'Redis connection failed; cache is degraded');
     });
   }
 };
@@ -59,4 +46,8 @@ const connectRedis = () => {
 const getRedisClient = () => redisClient;
 const isRedisReady = () => Boolean(redisClient?.isReady);
 
-export { connectRedis, getRedisClient, isRedisReady };
+const disconnectRedis = async () => {
+  if (redisClient?.isOpen) await redisClient.quit();
+};
+
+export { connectRedis, disconnectRedis, getRedisClient, isRedisReady };

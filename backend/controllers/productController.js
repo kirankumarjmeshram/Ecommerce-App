@@ -14,7 +14,7 @@ import {
 // @access  Public
 const getProducts = asyncHandler(async (req, res) => {
   const cacheKey = createProductListCacheKey(req.query);
-  const cachedProducts = await readCache(cacheKey);
+  const cachedProducts = await readCache(cacheKey, { requestId: req.id });
   if (cachedProducts) {
     res.set('X-Cache', 'HIT');
     return res.json(cachedProducts);
@@ -22,7 +22,7 @@ const getProducts = asyncHandler(async (req, res) => {
 
   const products = await Product.find({});
   res.set('X-Cache', 'MISS');
-  await writeCache(cacheKey, products);
+  await writeCache(cacheKey, products, { requestId: req.id });
   res.json(products);
 });
 
@@ -31,7 +31,7 @@ const getProducts = asyncHandler(async (req, res) => {
 // @access  Public
 const getProductById = asyncHandler(async (req, res) => {
   const cacheKey = createProductCacheKey(req.params.id);
-  const cachedProduct = await readCache(cacheKey);
+  const cachedProduct = await readCache(cacheKey, { requestId: req.id });
   if (cachedProduct) {
     res.set('X-Cache', 'HIT');
     return res.json(cachedProduct);
@@ -40,7 +40,7 @@ const getProductById = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id);
   if (product) {
     res.set('X-Cache', 'MISS');
-    await writeCache(cacheKey, product);
+    await writeCache(cacheKey, product, { requestId: req.id });
     res.json(product);
   } else {
     res.status(404);
@@ -74,7 +74,7 @@ const createProduct = asyncHandler(async (req, res) => {
   // console.log("product");
   const createProduct = await product.save();
 
-  await invalidateProductListCaches();
+  await invalidateProductListCaches({ requestId: req.id });
 
   res.status(201).json(createProduct);
 });
@@ -100,8 +100,8 @@ const updateProduct = asyncHandler(async (req, res) => {
     product.description = req.body.description || product.description;
     console.log("Update product")
     const updatedProduct = await product.save();
-    await invalidateProductCache(product._id);
-    await invalidateProductListCaches();
+    await invalidateProductCache(product._id, { requestId: req.id });
+    await invalidateProductListCaches({ requestId: req.id });
     res.json(updatedProduct);
   } else {
     res.status(404).json({ message: "Product not found" });
@@ -120,8 +120,8 @@ const deleteProduct = asyncHandler(async (req, res) => {
   }
 
   await product.deleteOne();
-  await invalidateProductCache(product._id);
-  await invalidateProductListCaches();
+  await invalidateProductCache(product._id, { requestId: req.id });
+  await invalidateProductListCaches({ requestId: req.id });
   res.json({ message: 'Product removed' });
 });
 

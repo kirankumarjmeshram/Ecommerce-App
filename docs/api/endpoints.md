@@ -46,3 +46,9 @@ Response shapes below are representative rather than schemas; current controller
 | --- | --- | --- | --- | --- | --- |
 | POST | `/api/payments/razorpay/order/:id` | Protected | Create Razorpay provider order | -> key id, Razorpay order id, amount, currency | Owner/admin and unpaid checks exist |
 | POST | `/api/payments/razorpay/verify` | Protected | Verify Checkout result | `{razorpay_order_id, razorpay_payment_id, razorpay_signature}` -> paid order | No webhook/reconciliation yet |
+
+## Admin observability
+
+| Method | Path | Auth / admin | Purpose | Body / response | Known issues |
+| --- | --- | --- | --- | --- | --- |
+| GET | `/api/admin/observability/summary` | Protected + admin | Safe current-process operational summary for the admin UI | -> statuses, process uptime/runtime, HTTP/cache totals, bounded live history | Counters/history reset on backend restart; no P95 or persistent data |
