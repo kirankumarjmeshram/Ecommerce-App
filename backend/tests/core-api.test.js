@@ -52,7 +52,10 @@ test('orders use MongoDB pricing and enforce owner/admin delivery access', async
   const other = request.agent(app); await register(other, { email: 'other@test.local' });
   const product = await createProduct({ price: 1000, countInStock: 1 });
   const created = await owner.post('/api/orders').send(orderBody(product._id.toString())).expect(201);
-  expect(created.body.itemsPrice).toBe(1000); expect(created.body.taxPrice).toBe(120); expect(created.body.totalPrice).toBe(1120);
+  expect(created.body.itemsPrice).toBe(1000);
+  expect(created.body.shippingPrice).toBe(100);
+  expect(created.body.taxPrice).toBe(120);
+  expect(created.body.totalPrice).toBe(1220);
   await owner.post('/api/orders').send(orderBody(product._id.toString(), { orderItems: [{ _id: product._id, qty: 2 }] })).expect(400);
   await other.get(`/api/orders/${created.body._id}`).expect(403);
   await other.put(`/api/orders/${created.body._id}/deliver`).expect(403);
