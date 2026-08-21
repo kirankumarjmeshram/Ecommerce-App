@@ -39,7 +39,6 @@ const PlaceOrderScreen = () => {
       dispatch(clearCartItems);
       navigate(`/order/${res._id}`);;
     }catch(err) {
-      console.error(err); 
       const errorMessage = err?.data?.message || err?.message || "An error occurred";
       toast.error(errorMessage);
     }

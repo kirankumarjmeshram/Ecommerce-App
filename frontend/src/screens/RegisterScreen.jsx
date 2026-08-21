@@ -6,6 +6,7 @@ import FormContainer from "../components/FormContainer";
 import Loader from "../components/Loader";
 import { useRegisterMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
+import { setCartOwner } from "../slices/cartSlice";
 import { toast } from "react-toastify";
 
 const RegisterScreen = () => {
@@ -39,6 +40,7 @@ const RegisterScreen = () => {
     } else {
       try {
         const res = await register({ name, email, password }).unwrap();
+        dispatch(setCartOwner(res._id));
         dispatch(setCredentials({ ...res }));
         navigate(redirect);
       } catch (err) {

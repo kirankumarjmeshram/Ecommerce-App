@@ -1,104 +1,138 @@
-import asyncHandler from "../middleware/asyncHandler.js";
-import Order from "../models/orderModel.js";
+import mongoose from 'mongoose';
+import asyncHandler from '../middleware/asyncHandler.js';
+import Order from '../models/orderModel.js';
+import Product from '../models/productModel.js';
 
-// @desc Create new order
-// @route POST / api / orders
-// @acces Private
+const roundCurrency = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
+
+const assertOrderId = (id, res) => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('Invalid order ID');
+  }
+};
+
+const canAccessOrder = (order, user) => user.isAdmin || order.user.toString() === user._id.toString();
+
+const getValidatedShippingAddress = (shippingAddress, res) => {
+  const fields = ['address', 'city', 'postalCode', 'country'];
+  if (!shippingAddress || typeof shippingAddress !== 'object') {
+    res.status(400);
+    throw new Error('A complete shipping address is required');
+  }
+
+  const normalizedAddress = {};
+  for (const field of fields) {
+    if (typeof shippingAddress[field] !== 'string' || !shippingAddress[field].trim()) {
+      res.status(400);
+      throw new Error(`Shipping address ${field} is required`);
+    }
+    normalizedAddress[field] = shippingAddress[field].trim();
+  }
+  return normalizedAddress;
+};
+
+const createAuthoritativeOrderItems = async (requestedItems, res) => {
+  if (!Array.isArray(requestedItems) || requestedItems.length === 0) {
+    res.status(400);
+    throw new Error('No order items');
+  }
+
+  const quantities = new Map();
+  for (const item of requestedItems) {
+    const productId = item?.product || item?._id;
+    const qty = Number(item?.qty);
+    if (!mongoose.isValidObjectId(productId) || !Number.isInteger(qty) || qty < 1) {
+      res.status(400);
+      throw new Error('Each order item must include a valid product and positive quantity');
+    }
+    quantities.set(productId.toString(), (quantities.get(productId.toString()) || 0) + qty);
+  }
+
+  const products = await Product.find({ _id: { $in: [...quantities.keys()] } });
+  const productsById = new Map(products.map((product) => [product._id.toString(), product]));
+  const orderItems = [];
+
+  for (const [productId, qty] of quantities) {
+    const product = productsById.get(productId);
+    if (!product) {
+      res.status(404);
+      throw new Error('One or more products no longer exist');
+    }
+    if (product.countInStock < qty) {
+      res.status(400);
+      throw new Error(`${product.name} does not have enough stock`);
+    }
+    orderItems.push({ name: product.name, qty, image: product.image, price: product.price, product: product._id });
+  }
+  return orderItems;
+};
+
+// @desc Create a new order using MongoDB product records as the price source
+// @route POST /api/orders
+// @access Private
 const addOrderItems = asyncHandler(async (req, res) => {
-  // res.send('add order item');
+  const { orderItems: requestedItems, shippingAddress, paymentMethod } = req.body;
+  if (paymentMethod !== 'Razorpay') {
+    res.status(400);
+    throw new Error('A supported payment method is required');
+  }
 
-  const {
+  const orderItems = await createAuthoritativeOrderItems(requestedItems, res);
+  const itemsPrice = roundCurrency(orderItems.reduce((sum, item) => sum + item.price * item.qty, 0));
+  const shippingPrice = itemsPrice > 1000 ? 0 : 100;
+  const taxPrice = roundCurrency(itemsPrice * 0.12);
+  const totalPrice = roundCurrency(itemsPrice + shippingPrice + taxPrice);
+
+  const order = await Order.create({
+    user: req.user._id,
     orderItems,
-    shippingAddress,
+    shippingAddress: getValidatedShippingAddress(shippingAddress, res),
     paymentMethod,
     itemsPrice,
     taxPrice,
     shippingPrice,
     totalPrice,
-  } = req.body;
-  if (orderItems && orderItems.length === 0) {
-    res.send(400);
-    throw new Error("No order Items");
-  } else {
-    const order = new Order({
-      orderItems: orderItems.map((x) => ({
-        ...x,
-        product: x._id,
-        _id: undefined,
-      })),
-      user: req.user._id,
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      taxPrice,
-      shippingPrice,
-      totalPrice,
-    });
-    const createOrder = await order.save();
-    res.status(201).json(createOrder);
-    // console.log("createOrder", createOrder)
-  }
+  });
+  res.status(201).json(order);
 });
 
-// @desc Get logged in user orders
-// @route GET /api /orders/myorders
-// @acces Private
 const getMyOrders = asyncHandler(async (req, res) => {
-  // res.send('get My Orders');
-  const orders = await Order.find({ user: req.user._id });
+  const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
   res.status(200).json(orders);
 });
 
-// @desc Get order by ID
-// @route GET/ api / orders/:id
-// @acces Private 
 const getOrderById = asyncHandler(async (req, res) => {
-  // res.send('get order by id');
-  const order = await Order.findById(req.params.id).populate(
-    "user",
-    "name email"
-  );
-
-  if (order) {
-    res.status(200).json(order);
-  } else {
+  assertOrderId(req.params.id, res);
+  const order = await Order.findById(req.params.id).populate('user', 'name email');
+  if (!order) {
     res.status(404);
-    throw new Error("Order not found");
+    throw new Error('Order not found');
   }
+  if (!canAccessOrder(order, req.user)) {
+    res.status(403);
+    throw new Error('Not authorized to view this order');
+  }
+  res.status(200).json(order);
 });
 
-// @desc Update order to delivered
-// @route PUT / api / orders/:id/delever
-// @acces Private/Admin
 const updateOrderToDelevered = asyncHandler(async (req, res) => {
-  // res.send("update order to delever");
+  assertOrderId(req.params.id, res);
   const order = await Order.findById(req.params.id);
-
-  if(order) {
-    order.isDelivered = true;
-    order.deliveredAt = Date.now();
-
-    const updatedOrder = await order.save();
-  }else{
+  if (!order) {
     res.status(404);
-    throw new Error("Order not found");
+    throw new Error('Order not found');
   }
+  if (!order.isDelivered) {
+    order.isDelivered = true;
+    order.deliveredAt = new Date();
+  }
+  res.json(await order.save());
 });
 
-// @desc Get all orders
-// @route GET / api / orders
-// @acces Private/Admin
 const getOrders = asyncHandler(async (req, res) => {
-  // res.send("get all orders");  
-  const orders = await Order.find({}).populate('user','id name');
-  // .populate('user', 'id, name');
+  const orders = await Order.find({}).populate('user', 'id name').sort({ createdAt: -1 });
   res.status(200).json(orders);
 });
 
-export {
-  addOrderItems,
-  getMyOrders,
-  getOrderById,
-  updateOrderToDelevered,
-  getOrders,
-};
+export { addOrderItems, getMyOrders, getOrderById, updateOrderToDelevered, getOrders };

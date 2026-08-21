@@ -26,7 +26,6 @@ const ProductEditScreen = () => {
   const [updateProduct, { isLoading: loadingUpdate }] = useUpdateProductMutation();
 
   const submitHandler = async (e) => {
-    console.log("Click on Submit")
     e.preventDefault();
     const updatedProduct = {
       productId,

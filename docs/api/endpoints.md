@@ -6,7 +6,10 @@ Response shapes below are representative rather than schemas; current controller
 
 | Method | Path | Auth / admin | Purpose | Body / response | Known issues |
 | --- | --- | --- | --- | --- | --- |
-| GET | `/` | Public | Basic API welcome response | `{ message }` | No health/readiness endpoint |
+| GET | `/` | Public | Basic API welcome response | `{ message }` | — |
+| GET | `/health` | Public | Liveness probe | process status | — |
+| GET | `/ready` | Public | Dependency readiness probe | MongoDB/Redis status | Redis may be degraded while MongoDB remains ready |
+| GET | `/metrics` | Public | Prometheus metrics | Prometheus text format | Protect at the network layer in production if required |
 
 ## Users
 
@@ -28,26 +31,26 @@ Response shapes below are representative rather than schemas; current controller
 | --- | --- | --- | --- | --- | --- |
 | GET | `/api/products` | Public | List products | -> array; `X-Cache` header | No search/pagination/filtering |
 | GET | `/api/products/:id` | Public | Product detail | -> product; `X-Cache` header | Invalid ids follow error middleware |
-| POST | `/api/products` | Protected + admin | Create product | product fields -> product | `countInStock` is initialized to 0 even if supplied |
-| PUT | `/api/products/:id` | Protected + admin | Update product | product fields -> product | `||` updates make setting numeric fields to 0 unreliable |
+| POST | `/api/products` | Protected + admin | Create product | Required text fields, non-negative price, integer `countInStock` -> product | Invalidates product-list cache |
+| PUT | `/api/products/:id` | Protected + admin | Update product | Valid supplied product fields -> product | Accepts valid `0` for price/stock; invalid IDs return `400` |
 | DELETE | `/api/products/:id` | Protected + admin | Delete product | `{ message }` | — |
 
 ## Orders
 
 | Method | Path | Auth / admin | Purpose | Body / response | Known issues |
 | --- | --- | --- | --- | --- | --- |
-| POST | `/api/orders` | Protected | Create order | items, address, method, totals -> order | Client provides prices/totals; missing `orderItems` can error |
+| POST | `/api/orders` | Protected | Create order | product IDs/quantities, address, `Razorpay` -> order | Product name/image/price and all totals are calculated from MongoDB; client totals are ignored |
 | GET | `/api/orders/myorders` | Protected | Current user's orders | -> array | — |
-| GET | `/api/orders/:id` | Protected | Order detail | -> order | Does not enforce owner/admin access: P0 |
+| GET | `/api/orders/:id` | Protected | Order detail | -> order | Order owner or admin only; invalid IDs `400` |
 | GET | `/api/orders` | Protected + admin | List all orders | -> array | — |
-| PUT | `/api/orders/:id/deliver` | Protected + admin | Mark delivered | -> intended order update | Schema/property mismatch and controller sends no response |
+| PUT | `/api/orders/:id/deliver` | Protected + admin | Mark delivered | -> updated order | Sets `isDelivered` and `deliveredAt` |
 
 ## Payments
 
 | Method | Path | Auth / admin | Purpose | Body / response | Known issues |
 | --- | --- | --- | --- | --- | --- |
 | POST | `/api/payments/razorpay/order/:id` | Protected | Create Razorpay provider order | -> key id, Razorpay order id, amount, currency | Owner/admin and unpaid checks exist |
-| POST | `/api/payments/razorpay/verify` | Protected | Verify Checkout result | `{razorpay_order_id, razorpay_payment_id, razorpay_signature}` -> paid order | No webhook/reconciliation yet |
+| POST | `/api/payments/razorpay/verify/:orderId` | Protected | Verify Checkout result | `{razorpay_order_id, razorpay_payment_id, razorpay_signature}` -> paid order | Owner/admin only; HMAC verification and duplicate-payment protection; webhook/reconciliation not yet implemented |
 
 ## Admin observability
 

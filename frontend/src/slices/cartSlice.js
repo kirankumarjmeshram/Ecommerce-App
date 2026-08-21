@@ -1,14 +1,25 @@
 import { createSlice } from "@reduxjs/toolkit"; // we dont need createApi here
-import { updateCart } from "../utils/cartUtils";
-const initialState = localStorage.getItem("cart")
-  ? JSON.parse(localStorage.getItem("cart"))
-  : { cartItems: [], shippingAddress: {}, paymentMethod: '' };
+import { getStoredCart, updateCart } from "../utils/cartUtils";
+
+const currentUser = JSON.parse(localStorage.getItem("userInfo") || 'null');
+const initialOwnerId = currentUser?._id || null;
+const initialState = getStoredCart(initialOwnerId) || {
+  ownerId: initialOwnerId,
+  cartItems: [],
+  shippingAddress: {},
+  paymentMethod: '',
+};
 //  {cartItems: [], totalQuantity: 0, totalAmount: 0};
 
 const cartSlice = createSlice({
   name: "cart",
   initialState,
   reducers: {
+    setCartOwner: (state, action) => {
+      const ownerId = action.payload || null;
+      const storedCart = getStoredCart(ownerId);
+      return storedCart || { ownerId, cartItems: [], shippingAddress: {}, paymentMethod: '' };
+    },
     addToCart: (state, action) => {
       const item = action.payload;
       const existItem = state.cartItems.find((x) => x._id === item._id);
@@ -43,6 +54,7 @@ const cartSlice = createSlice({
 });
 
 export const { 
+  setCartOwner,
   addToCart, 
   removeFromCart, 
   saveShippingAddress, 

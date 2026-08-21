@@ -1,5 +1,6 @@
-import asyncHandler from "../middleware/asyncHandler.js";
-import Product from "../models/productModel.js";
+import mongoose from 'mongoose';
+import asyncHandler from '../middleware/asyncHandler.js';
+import Product from '../models/productModel.js';
 import {
   createProductCacheKey,
   createProductListCacheKey,
@@ -9,9 +10,51 @@ import {
   writeCache,
 } from '../utils/productCache.js';
 
-// @desc    Fetch all products
-// @route   GET /api/products
-// @access  Public
+const PRODUCT_TEXT_FIELDS = ['name', 'image', 'brand', 'category', 'description'];
+
+const assertProductId = (id, res) => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('Invalid product ID');
+  }
+};
+
+const getValidatedProductFields = (body, res, { partial = false } = {}) => {
+  const product = {};
+  for (const field of PRODUCT_TEXT_FIELDS) {
+    if (body[field] === undefined) {
+      if (!partial) {
+        res.status(400);
+        throw new Error(`${field} is required`);
+      }
+      continue;
+    }
+    if (typeof body[field] !== 'string' || !body[field].trim()) {
+      res.status(400);
+      throw new Error(`${field} must be a non-empty string`);
+    }
+    product[field] = body[field].trim();
+  }
+
+  for (const field of ['price', 'countInStock']) {
+    if (body[field] === undefined) {
+      if (!partial) {
+        res.status(400);
+        throw new Error(`${field} is required`);
+      }
+      continue;
+    }
+    const value = Number(body[field]);
+    const valid = field === 'price' ? Number.isFinite(value) && value >= 0 : Number.isInteger(value) && value >= 0;
+    if (!valid) {
+      res.status(400);
+      throw new Error(field === 'price' ? 'price must be a non-negative number' : 'countInStock must be a non-negative integer');
+    }
+    product[field] = value;
+  }
+  return product;
+};
+
 const getProducts = asyncHandler(async (req, res) => {
   const cacheKey = createProductListCacheKey(req.query);
   const cachedProducts = await readCache(cacheKey, { requestId: req.id });
@@ -26,10 +69,8 @@ const getProducts = asyncHandler(async (req, res) => {
   res.json(products);
 });
 
-// @desc    Fetch all product
-// @route   GET /api/products/:id
-// @access  Public
 const getProductById = asyncHandler(async (req, res) => {
+  assertProductId(req.params.id, res);
   const cacheKey = createProductCacheKey(req.params.id);
   const cachedProduct = await readCache(cacheKey, { requestId: req.id });
   if (cachedProduct) {
@@ -38,87 +79,49 @@ const getProductById = asyncHandler(async (req, res) => {
   }
 
   const product = await Product.findById(req.params.id);
-  if (product) {
-    res.set('X-Cache', 'MISS');
-    await writeCache(cacheKey, product, { requestId: req.id });
-    res.json(product);
-  } else {
-    res.status(404);
-    throw new Error("Product not found");
-  }
-});
-
-// @desc    create  products
-// @route   CREATE /api/products
-// @access  Private/Admin
-const createProduct = asyncHandler(async (req, res) => {
-  const product = new Product({
-    name: req.body.name,
-    price: req.body.price,
-    user: req.user.id,
-    image: req.body.image,
-    brand: req.body.brand,
-    category: req.body.category,
-    countInStock: 0,
-    description: req.body.description,
-    // name: "name",
-    // price: 100,
-    // user: req.user.id,
-    // image: "image",
-    // brand: "brand",
-    // category: "category",
-    // countInStock: 0,
-    // numReviews: 0,
-    // description: "description",
-  });
-  // console.log("product");
-  const createProduct = await product.save();
-
-  await invalidateProductListCaches({ requestId: req.id });
-
-  res.status(201).json(createProduct);
-});
-
-// @desc    update product
-// @route   PUT /api/products/:id
-// @access  Private/Admin
-const updateProduct = asyncHandler(async (req, res) => {
-  // const { name, price, description, image, brand, category, countInStock } =
-  //   req.body;
-  const { id } = req.params;
-  const product = await Product.findById(id);
-  console.log("Hello")
-  console.log(id)
-  
-  if (product) {
-    product.name = req.body.name || product.name;
-    product.price = req.body.price || product.price;
-    product.image = req.body.image || product.image;
-    product.brand = req.body.brand || product.brand;
-    product.category = req.body.category || product.category;
-    product.countInStock = req.body.countInStock || product.countInStock;
-    product.description = req.body.description || product.description;
-    console.log("Update product")
-    const updatedProduct = await product.save();
-    await invalidateProductCache(product._id, { requestId: req.id });
-    await invalidateProductListCaches({ requestId: req.id });
-    res.json(updatedProduct);
-  } else {
-    res.status(404).json({ message: "Product not found" });
-  }
-});
-
-// @desc    Delete product
-// @route   DELETE /api/products/:id
-// @access  Private/Admin
-const deleteProduct = asyncHandler(async (req, res) => {
-  const product = await Product.findById(req.params.id);
-
   if (!product) {
     res.status(404);
     throw new Error('Product not found');
   }
+  res.set('X-Cache', 'MISS');
+  await writeCache(cacheKey, product, { requestId: req.id });
+  res.json(product);
+});
 
+const createProduct = asyncHandler(async (req, res) => {
+  const fields = getValidatedProductFields(req.body, res);
+  const product = await Product.create({ ...fields, user: req.user._id });
+  await invalidateProductListCaches({ requestId: req.id });
+  res.status(201).json(product);
+});
+
+const updateProduct = asyncHandler(async (req, res) => {
+  assertProductId(req.params.id, res);
+  const fields = getValidatedProductFields(req.body, res, { partial: true });
+  if (Object.keys(fields).length === 0) {
+    res.status(400);
+    throw new Error('At least one product field is required');
+  }
+
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
+  Object.assign(product, fields);
+  const updatedProduct = await product.save();
+  await invalidateProductCache(product._id, { requestId: req.id });
+  await invalidateProductListCaches({ requestId: req.id });
+  res.json(updatedProduct);
+});
+
+const deleteProduct = asyncHandler(async (req, res) => {
+  assertProductId(req.params.id, res);
+  const product = await Product.findById(req.params.id);
+  if (!product) {
+    res.status(404);
+    throw new Error('Product not found');
+  }
   await product.deleteOne();
   await invalidateProductCache(product._id, { requestId: req.id });
   await invalidateProductListCaches({ requestId: req.id });

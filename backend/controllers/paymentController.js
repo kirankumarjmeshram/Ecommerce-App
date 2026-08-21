@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import mongoose from 'mongoose';
 import asyncHandler from '../middleware/asyncHandler.js';
 import Order from '../models/orderModel.js';
 import getRazorpay from '../config/razorpay.js';
@@ -12,6 +13,13 @@ const assertRazorpayConfig = () => {
 const canAccessOrder = (order, user) =>
   order.user.toString() === user._id.toString() || user.isAdmin;
 
+const assertOrderId = (id, res) => {
+  if (!mongoose.isValidObjectId(id)) {
+    res.status(400);
+    throw new Error('Invalid order ID');
+  }
+};
+
 const getSafeRazorpayError = (error) => ({
   message: error.message,
   statusCode: error.statusCode,
@@ -24,6 +32,7 @@ const getSafeRazorpayError = (error) => ({
 
 const createRazorpayOrder = asyncHandler(async (req, res) => {
   assertRazorpayConfig();
+  assertOrderId(req.params.orderId, res);
 
   const order = await Order.findById(req.params.orderId);
   if (!order) {
@@ -88,6 +97,7 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
 
 const verifyRazorpayPayment = asyncHandler(async (req, res) => {
   assertRazorpayConfig();
+  assertOrderId(req.params.orderId, res);
 
   const {
     razorpay_payment_id: razorpayPaymentId,

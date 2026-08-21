@@ -12,11 +12,13 @@ The backend configures CORS for `CLIENT_URL` with `credentials: true`. Frontend-
 
 ## Semantics
 
-- **401 Unauthorized:** absent, invalid, or expired authentication.
+- **401 Unauthorized:** absent, invalid, expired authentication, or a JWT whose user no longer exists.
 - **403 Forbidden:** a valid non-admin user reaches an admin-only endpoint.
 
 ## Sensitive configuration
 
 Keep `JWT_SECRET`, MongoDB URI credentials, Razorpay secret, and Redis URLs/passwords server-only in `.env`. They must be ignored by Git and never logged. Razorpay Key ID is intentionally returned only when creating checkout options; its Key Secret remains server-only.
+
+Order detail and Razorpay payment actions enforce order-owner or admin access server-side. Order totals and provider amounts use server-calculated order data rather than browser-provided totals.
 
 See [security notes](security-notes.md) for remediation priorities.

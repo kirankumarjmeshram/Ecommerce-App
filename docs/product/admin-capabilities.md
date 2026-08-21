@@ -4,11 +4,11 @@
 
 | Capability | Status | Notes |
 | --- | --- | --- |
-| Product list/create/edit/delete | Available | Server enforces admin middleware; stock-zero handling needs repair |
+| Product list/create/edit/delete | Implemented | Server enforces admin middleware, validates mutations, and accepts stock `0` |
 | Order list | Available | Admin-only API/screen |
 | System observability | Available | `/admin/observability` shows safe live process/API/MongoDB/Redis/cache status and charts; it is not business analytics or persistent monitoring |
-| Mark delivered | Partial/broken | Schema uses `isDeliverd`; controller writes `isDelivered` and does not respond |
-| User list/detail/update/delete | Not implemented | Routes/controllers return placeholders; header link has no matching screen |
+| Mark delivered | Implemented | Admin-only endpoint stores `isDelivered`, sets `deliveredAt`, and returns the updated order |
+| User list/detail/update/delete | Implemented | Admin-only routes/screens; safe user fields only, duplicate-email control, and self-delete protection |
 
 ## Planned business dashboard
 

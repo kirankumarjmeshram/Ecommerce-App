@@ -133,7 +133,7 @@ const Profile = () => {
                       )}
                   </td>
                   <td>
-                    {order.isDeliverd?(
+                    {order.isDelivered?(
                       order.paidDeliverd?.substring(0, 10))
                       :(
                         <FaTimes style={{color:'red'}} />

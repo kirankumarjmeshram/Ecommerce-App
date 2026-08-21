@@ -6,6 +6,7 @@ import FormContainer from "../components/FormContainer";
 import Loader from "../components/Loader";
 import { useLoginMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
+import { setCartOwner } from "../slices/cartSlice";
 import { toast } from "react-toastify";
 
 const LoginScreen = () => {
@@ -34,6 +35,7 @@ const LoginScreen = () => {
     // console.log("submit");
     try {
       const res = await login({ email, password }).unwrap();
+      dispatch(setCartOwner(res._id));
       dispatch(setCredentials({ ...res }));
       navigate(redirect);
     } catch (err) {

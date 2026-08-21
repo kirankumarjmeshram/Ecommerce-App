@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {useNavigate} from 'react-router-dom';
 import {useLogoutMutation} from '../slices/usersApiSlice';
 import {logout} from '../slices/authSlice';
+import { setCartOwner } from '../slices/cartSlice';
 
 import logo from "../assets/logo.png";
 const Header = () => {
@@ -20,10 +21,11 @@ const Header = () => {
     // console.log("Logout");
     try {
       await logoutApiCall().unwrap();
+      dispatch(setCartOwner(null));
       dispatch(logout());
       navigate('/login')
     }catch(err){
-      console.log(err)
+      // Keep the existing authenticated UI intact when a network request fails.
     }
 
   };
