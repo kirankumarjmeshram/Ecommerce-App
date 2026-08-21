@@ -2,7 +2,9 @@ import mongoose from 'mongoose';
 import { logger } from '../observability/logger.js';
 
 const connectDB = async () => {
-  const db = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/ecomdb';
+  const db = process.env.MONGO_URI || (process.env.NODE_ENV !== 'production'
+    ? 'mongodb://127.0.0.1:27017/ecomdb'
+    : undefined);
 
   if (!db) {
     throw new Error('MONGO_URI is not defined');
