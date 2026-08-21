@@ -2,7 +2,11 @@
 
 ## Current status
 
-There is no meaningful backend automated test suite. The frontend retains the default CRA `App.test.js`, which does not test the mounted application flow and is likely stale. Manual development checks are currently practical validation.
+AUTOMATED: the backend uses Jest 29 with Supertest and `mongodb-memory-server`. Each API test runs against a disposable MongoDB instance, with deterministic JWT/Razorpay test secrets and no Atlas, Upstash, or Razorpay network access. Backend commands from `backend/` are `npm test`, `npm run test:watch`, and `npm run test:coverage`.
+
+AUTOMATED: focused coverage includes authentication/roles, safe user responses, product validation and CRUD, order ownership and server pricing, delivery state, Razorpay signature verification, health/readiness/metrics/request IDs, and cart storage isolation.
+
+MANUAL: real Razorpay Checkout, real Redis/Upstash cache behavior, browser payment modal behavior, and full multi-user checkout journeys remain manual until a later E2E/integration phase.
 
 ## Planned levels
 
