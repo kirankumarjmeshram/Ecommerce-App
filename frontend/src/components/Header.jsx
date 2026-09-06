@@ -1,4 +1,5 @@
-import { Badge, Container, Navbar, Nav, NavDropdown } from "react-bootstrap";
+import { Badge, Container, Navbar, Nav, NavDropdown, Form, Button } from "react-bootstrap";
+import { useGetProductCategoriesQuery } from '../slices/productsApiSlice';
 import { FaShoppingCart, FaUser } from "react-icons/fa";
 import { LinkContainer } from "react-router-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -7,13 +8,13 @@ import {useLogoutMutation} from '../slices/usersApiSlice';
 import {logout} from '../slices/authSlice';
 import { setCartOwner } from '../slices/cartSlice';
 
-import logo from "../assets/logo.png";
 const Header = () => {
   const { cartItems } = useSelector((state) => state.cart);
   // console.log(cartItems)
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { data: categoryData } = useGetProductCategoriesQuery();
 
   const [logoutApiCall] = useLogoutMutation();// we can call logoutApiCall whatever we want
 
@@ -30,18 +31,29 @@ const Header = () => {
 
   };
   return (
-    <header>
-      <Navbar bg="dark" variant="dark" expand="md">
+    <header className="store-header">
+      <div className="store-announcement">Everyday essentials. Secure checkout with Razorpay.</div>
+      <Navbar variant="light" expand="xl" collapseOnSelect>
         <Container>
           <LinkContainer to="/">
             <Navbar.Brand>
-              <img src={logo} alt="logo" className="w-25" />
+              <span className="brand-mark" aria-hidden="true">S</span> ShopSphere<span className="brand-dot">.</span>
             </Navbar.Brand>
           </LinkContainer>
 
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
+            <Form className="header-search" role="search" onSubmit={(event) => { event.preventDefault(); const keyword = new FormData(event.currentTarget).get('keyword').trim(); navigate(`/products?${new URLSearchParams(keyword ? { keyword } : {})}`); }}>
+              <Form.Control name="keyword" type="search" maxLength={100} aria-label="Search products" placeholder="Search products…" />
+              <Button type="submit" variant="light">Search</Button>
+            </Form>
             <Nav className="ms-auto">
+              <LinkContainer to="/"><Nav.Link>Home</Nav.Link></LinkContainer>
+              <LinkContainer to="/products"><Nav.Link>Products</Nav.Link></LinkContainer>
+              <NavDropdown title="Categories" id="categories-menu">
+                <LinkContainer to="/products"><NavDropdown.Item>All Categories</NavDropdown.Item></LinkContainer>
+                {categoryData?.categories.map((category) => <LinkContainer key={category} to={`/products?${new URLSearchParams({ category })}`}><NavDropdown.Item>{category}</NavDropdown.Item></LinkContainer>)}
+              </NavDropdown>
               <LinkContainer to="/cart">
                 <Nav.Link>
                   <FaShoppingCart />
@@ -63,7 +75,7 @@ const Header = () => {
                   </NavDropdown.Item>
                 </NavDropdown>
               ) : (
-                <LinkContainer to="./login">
+                <LinkContainer to="/login">
                   <Nav.Link>
                     <FaUser />
                     SignIn

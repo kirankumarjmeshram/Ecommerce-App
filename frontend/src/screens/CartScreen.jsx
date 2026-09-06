@@ -1,105 +1,33 @@
-import { Link, useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  Row,
-  Col,
-  ListGroup,
-  Image,
-  Form,
-  Button,
-  Card,
-} from "react-bootstrap";
-import { FaTrash } from "react-icons/fa";
-import Message from "../components/Message";
-import { addToCart, removeFromCart } from "../slices/cartSlice";
+import { Link, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { Row, Col, Form, Button, Card } from 'react-bootstrap';
+import { FaTrash, FaShoppingBag } from 'react-icons/fa';
+import PageHeader from '../components/PageHeader';
+import formatCurrency from '../utils/formatCurrency';
+import { addToCart, removeFromCart } from '../slices/cartSlice';
+
 const CartScreen = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const cart = useSelector((state) => state.cart);
-  const { cartItems } = cart;
-
-  const addToCartHandler = (product, qty) => {
-      dispatch(addToCart({...product,  qty}))
-  }
-  const removeFromCartHandler = (id) => {
-      dispatch(removeFromCart(id));
-  }
-
-  const checkoutHandler = () => {
-    navigate('/login?redirect=/shipping');
-  }
-
+  const { cartItems } = useSelector((state) => state.cart);
+  const count = cartItems.reduce((sum, item) => sum + item.qty, 0);
   return (
-    <Row>
-      <Col md={8}>
-        <h1 style={{ marginBottom: "20px" }}>Shopping Cart</h1>
-        {cartItems.length === 0 ? (
-          <Message variant="info">
-            Your cart is empty <Link to="/">Go Back</Link>
-          </Message>
-        ) : (
-          <ListGroup variant="flush">
-            {cartItems.map((item) => (
-              <ListGroup.Item key={item._id}>
-                <Row>
-                  <Col md={2}>
-                    <Image src={item.image} alt={item.name} fluid rounded />
-                  </Col>
-                  <Col md={3}>
-                    <Link to={`/product/${item._id}`}>{item.name}</Link>
-                  </Col>
-                  <Col md={2}>₹{item.price}</Col>
-                  <Col>
-                    <Form.Control
-                      as="select"
-                      value={item.qty}
-                        onChange={(e) => addToCartHandler(item,Number(e.target.value))}
-                    >
-                      {[...Array(item.countInStock).keys()].map((x) => (
-                        <option key={x + 1} value={x + 1}>
-                          {x + 1}
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Col>
-                  <Col md={2}>
-                    <Button type="button" variant="light" onClick={()=>removeFromCartHandler(item._id)}>
-                      <FaTrash />
-                    </Button>
-                  </Col>
-                </Row>
-              </ListGroup.Item>
-            ))}
-          </ListGroup>
-        )}
-      </Col>
-      <Col md={4}>
-        <Card>
-          <ListGroup varient="flush">
-            <ListGroup.Item>
-              <h2>
-                Subtotal ({cartItems.reduce((a, c) => a + c.qty, 0)}) Items
-              </h2>
-              <h2>
-                ₹{" "}
-                {cartItems.reduce((a, c) => a + c.qty * c.price, 0).toFixed(2)}
-              </h2>
-            </ListGroup.Item>
-            <ListGroup.Item>
-              <Button
-                type="button"
-                className="btn-block"
-                disabled={cartItems.length === 0}
-                onClick={()=>checkoutHandler()}
-              >
-                Proceed To Checkout
-              </Button>
-            </ListGroup.Item>
-          </ListGroup>
-        </Card>
-      </Col>
-    </Row>
+    <>
+      <PageHeader title="Your shopping bag" description="Your favourites, ready for the next step." />
+      {cartItems.length === 0 ? <div className="empty-state"><FaShoppingBag aria-hidden="true" /><h2>A little empty, a lot of possibility.</h2><p>Explore the collection and find something for your everyday.</p><Link className="btn btn-primary" to="/">Continue shopping →</Link></div> : (
+        <Row className="g-4">
+          <Col lg={8}><div className="cart-items">{cartItems.map((item) => (
+            <article className="cart-item" key={item._id}>
+              <Link to={`/product/${item._id}`}><img src={item.image} alt={item.name} /></Link>
+              <div className="cart-item-info"><p className="eyebrow">{item.brand}</p><Link to={`/product/${item._id}`}>{item.name}</Link><p>{formatCurrency(item.price)}</p></div>
+              <Form.Group controlId={`quantity-${item._id}`}><Form.Label>Qty</Form.Label><Form.Select value={item.qty} onChange={(e) => dispatch(addToCart({ ...item, qty: Number(e.target.value) }))}>{Array.from({ length: item.countInStock }, (_, x) => <option key={x + 1} value={x + 1}>{x + 1}</option>)}</Form.Select></Form.Group>
+              <Button variant="light" aria-label={`Remove ${item.name} from cart`} onClick={() => dispatch(removeFromCart(item._id))}><FaTrash aria-hidden="true" /></Button>
+            </article>
+          ))}</div><Link className="back-link" to="/">← Continue shopping</Link></Col>
+          <Col lg={4}><Card className="order-summary"><Card.Body><h2>Order summary</h2><div className="summary-line"><span>Items</span><span>{count}</span></div><div className="summary-line summary-total"><span>Subtotal</span><strong>{formatCurrency(cartItems.reduce((sum, item) => sum + item.price * item.qty, 0))}</strong></div><p className="text-muted small">Shipping and tax are shown when you review your order.</p><Button className="w-100" onClick={() => navigate('/login?redirect=/shipping')}>Proceed to checkout →</Button><p className="purchase-note mb-0">Secure payment via Razorpay</p></Card.Body></Card></Col>
+        </Row>
+      )}
+    </>
   );
 };
-
 export default CartScreen;

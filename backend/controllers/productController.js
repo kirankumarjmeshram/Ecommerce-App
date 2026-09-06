@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import asyncHandler from '../middleware/asyncHandler.js';
 import Product from '../models/productModel.js';
+import { parseProductQuery } from '../utils/productQuery.js';
 import {
   createProductCacheKey,
   createProductListCacheKey,
@@ -56,17 +57,35 @@ const getValidatedProductFields = (body, res, { partial = false } = {}) => {
 };
 
 const getProducts = asyncHandler(async (req, res) => {
-  const cacheKey = createProductListCacheKey(req.query);
+  let parsed;
+  try { parsed = parseProductQuery(req.query); } catch (error) { res.status(400); throw error; }
+  const { normalized, filter, sort } = parsed;
+  const cacheKey = createProductListCacheKey(normalized);
   const cachedProducts = await readCache(cacheKey, { requestId: req.id });
   if (cachedProducts) {
     res.set('X-Cache', 'HIT');
     return res.json(cachedProducts);
   }
 
-  const products = await Product.find({});
+  const [products, totalProducts] = await Promise.all([
+    Product.find(filter).sort(sort).skip((normalized.page - 1) * normalized.limit).limit(normalized.limit).lean(),
+    Product.countDocuments(filter),
+  ]);
+  const result = { products, page: normalized.page, pages: Math.ceil(totalProducts / normalized.limit), totalProducts };
   res.set('X-Cache', 'MISS');
-  await writeCache(cacheKey, products, { requestId: req.id });
-  res.json(products);
+  await writeCache(cacheKey, result, { requestId: req.id });
+  res.json(result);
+});
+
+const getProductCategories = asyncHandler(async (req, res) => {
+  const cacheKey = createProductListCacheKey({ resource: 'categories' });
+  const cached = await readCache(cacheKey, { requestId: req.id });
+  if (cached) { res.set('X-Cache', 'HIT'); return res.json(cached); }
+  const categories = (await Product.distinct('category')).filter((value) => typeof value === 'string' && value.trim()).sort((a, b) => a.localeCompare(b));
+  const result = { categories };
+  await writeCache(cacheKey, result, { requestId: req.id });
+  res.set('X-Cache', 'MISS');
+  res.json(result);
 });
 
 const getProductById = asyncHandler(async (req, res) => {
@@ -128,4 +147,4 @@ const deleteProduct = asyncHandler(async (req, res) => {
   res.json({ message: 'Product removed' });
 });
 
-export { getProducts, getProductById, createProduct, updateProduct, deleteProduct };
+export { getProducts, getProductCategories, getProductById, createProduct, updateProduct, deleteProduct };

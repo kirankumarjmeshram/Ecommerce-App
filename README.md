@@ -1,4 +1,6 @@
-# 🛒 Ecommerce-App (MERN Stack)
+# ShopSphere — Ecommerce-App (MERN Stack)
+
+ShopSphere is the replaceable storefront display brand. Repository/package names remain Ecommerce-App. The UI uses React Bootstrap with a shared neutral/teal theme, responsive product cards, INR formatting, accessible form controls, checkout summaries and admin tables. Branding lives in Header, Footer, HomeScreen and public metadata.
 
 ## Documentation
 
@@ -18,12 +20,14 @@ This project demonstrates end-to-end functionality of an online shopping platfor
 * Add to Cart / Remove from Cart
 * Place Orders
 * View Order History
+* Secure Razorpay checkout and backend payment signature verification
 
 ### 🛠️ Admin Features
 
 * Add / Update / Delete Products
 * Manage Orders
 * Manage Users
+* View current-process observability charts with Recharts
 
 ---
 
@@ -34,13 +38,17 @@ This project demonstrates end-to-end functionality of an online shopping platfor
 * React.js
 * React Router
 * Axios
-* Bootstrap / CSS
+* React Bootstrap / shared CSS tokens
+* Redux Toolkit / RTK Query
+* Recharts
 
 ### Backend
 
 * Node.js
 * Express.js
 * MongoDB (Mongoose)
+* Redis cache-aside product caching with invalidation and fallback
+* Pino structured logging, request IDs, Prometheus metrics, health/readiness probes
 
 ### Authentication
 
@@ -90,8 +98,8 @@ Ecommerce-App/
 1. User logs in with credentials
 2. Server validates user
 3. JWT token is generated
-4. Token is sent to client
-5. Client sends token in headers for protected routes
+4. The JWT is set in an HttpOnly cookie; the frontend receives safe user information
+5. Browser requests include the cookie; backend middleware checks authentication and admin roles
 
 ---
 
@@ -99,8 +107,8 @@ Ecommerce-App/
 
 ### Auth
 
-* `POST /api/users/register` → Register user
-* `POST /api/users/login` → Login user
+* `POST /api/users` → Register user
+* `POST /api/users/auth` → Login user
 
 ### Products
 
@@ -109,8 +117,7 @@ Ecommerce-App/
 
 ### Cart
 
-* `POST /api/cart` → Add to cart
-* `DELETE /api/cart/:id` → Remove item
+Cart items and shipping details use Redux and browser localStorage; there is no server cart endpoint.
 
 ### Orders
 
@@ -135,10 +142,10 @@ cd backend
 npm install
 ```
 
-Create `.env` file:
+Configure the root `.env` using `backend/.env.example` as a placeholder reference. See [environment documentation](docs/operations/environment-variables.md) and [deployment readiness](docs/operations/deployment-readiness.md).
 
 ```
-PORT=5000
+PORT=5001
 MONGO_URI=your_mongodb_uri
 JWT_SECRET=your_secret_key
 ```
@@ -173,14 +180,24 @@ npm start
 
 ## 📈 Future Improvements (Important for Scaling)
 
-* 🔹 Redis caching for faster product APIs
 * 🔹 Rate limiting for API protection
 * 🔹 Refresh token authentication
 * 🔹 Queue system for order processing
-* 🔹 Logging & monitoring (Winston/Morgan)
 * 🔹 Docker deployment
 
 ---
+
+## Tests and CI
+
+Backend tests use Jest, Supertest and disposable MongoDB. Frontend tests use CRA/Testing Library. GitHub Actions validates the frontend and backend independently; deployment is a separate phase and is not claimed here.
+
+```sh
+npm test --prefix backend
+npm test --prefix frontend -- --watchAll=false
+npm run build --prefix frontend
+```
+
+See [test strategy](docs/testing/test-strategy.md) and [CI documentation](docs/operations/continuous-integration.md) for current scope and limitations.
 
 ## 🧠 Key Learnings
 

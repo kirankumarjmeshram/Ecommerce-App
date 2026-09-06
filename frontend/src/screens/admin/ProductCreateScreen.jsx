@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Button, Form } from 'react-bootstrap';
 import { toast } from 'react-toastify';
 import FormContainer from '../../components/FormContainer';
+import CategoryInput from '../../components/CategoryInput';
 import Loader from '../../components/Loader';
 import { useCreateProductMutation } from '../../slices/productsApiSlice';
 
@@ -62,10 +63,7 @@ const ProductCreateScreen = () => {
             <Form.Label>Brand</Form.Label>
             <Form.Control type="text" value={brand} onChange={(event) => setBrand(event.target.value)} required />
           </Form.Group>
-          <Form.Group controlId="category" className="my-2">
-            <Form.Label>Category</Form.Label>
-            <Form.Control type="text" value={category} onChange={(event) => setCategory(event.target.value)} required />
-          </Form.Group>
+          <CategoryInput value={category} onChange={(event) => setCategory(event.target.value)} />
           <Form.Group controlId="countInStock" className="my-2">
             <Form.Label>Count In Stock</Form.Label>
             <Form.Control type="number" min="0" step="1" value={countInStock} onChange={(event) => setCountInStock(event.target.value)} required />

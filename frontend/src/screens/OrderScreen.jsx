@@ -1,3 +1,4 @@
+import formatCurrency from '../utils/formatCurrency';
 import { Link, useParams } from "react-router-dom";
 import Message from "../components/Message";
 import { Row, Col, ListGroup, Image, Button, Card } from "react-bootstrap";
@@ -81,7 +82,7 @@ const OrderScreen = () => {
 
   return (
     <>
-      <h1>Order {order._id}</h1>
+      <h1>Your order</h1><p className="text-muted order-reference">Order reference: {order._id}</p>
       <Row>
         <Col md={8}>
           <ListGroup variant="flush">
@@ -93,7 +94,7 @@ const OrderScreen = () => {
               {order.isDelivered ? <Message variant="success">Delivered on {order.deliveredAt}</Message> : <Message variant="danger">Not Delivered</Message>}
             </ListGroup.Item>
             <ListGroup.Item>
-              <h2>Payment</h2>
+              <h2>Secure payment via Razorpay</h2>
               <p><strong>Method: </strong>{order.paymentMethod}</p>
               {order.isPaid ? <Message variant="success">Paid on {order.paidAt}</Message> : <Message variant="danger">Not Paid</Message>}
             </ListGroup.Item>
@@ -104,7 +105,7 @@ const OrderScreen = () => {
                   <Row>
                     <Col md={1}><Image src={item.image} alt={item.name} fluid rounded /></Col>
                     <Col><Link to={`/product/${item.product}`}>{item.name}</Link></Col>
-                    <Col md={4}>{item.qty} x ₹{item.price} = ₹{item.qty * item.price}</Col>
+                    <Col md={4}>{item.qty} x {formatCurrency(item.price)} = {formatCurrency(item.qty * item.price)}</Col>
                   </Row>
                 </ListGroup.Item>
               ))}
@@ -112,20 +113,20 @@ const OrderScreen = () => {
           </ListGroup>
         </Col>
         <Col md={4}>
-          <Card>
+          <Card className="order-summary">
             <ListGroup variant="flush">
               <ListGroup.Item><h2>Order Summary</h2></ListGroup.Item>
               <ListGroup.Item>
-                <Row><Col>Items</Col><Col>₹{order.itemsPrice}</Col></Row>
-                <Row><Col>Shipping</Col><Col>₹{order.shippingPrice}</Col></Row>
-                <Row><Col>Tax</Col><Col>₹{order.taxPrice}</Col></Row>
-                <Row><Col>Total</Col><Col>₹{order.totalPrice}</Col></Row>
+                <Row><Col>Items</Col><Col>{formatCurrency(order.itemsPrice)}</Col></Row>
+                <Row><Col>Shipping</Col><Col>{formatCurrency(order.shippingPrice)}</Col></Row>
+                <Row><Col>Tax</Col><Col>{formatCurrency(order.taxPrice)}</Col></Row>
+                <Row><Col>Total</Col><Col>{formatCurrency(order.totalPrice)}</Col></Row>
               </ListGroup.Item>
               {!order.isPaid && (
                 <ListGroup.Item>
                   {(loadingRazorpayOrder || verifyingPayment) && <Loader />}
                   <Button type="button" className="btn-block" onClick={payNowHandler} disabled={loadingRazorpayOrder || verifyingPayment}>
-                    Pay Now with Razorpay
+                    Pay securely with Razorpay
                   </Button>
                 </ListGroup.Item>
               )}

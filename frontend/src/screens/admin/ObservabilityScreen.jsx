@@ -37,7 +37,7 @@ const StatusBadge = ({ status }) => (
 );
 
 const MetricCard = ({ label, value, hint, variant = 'primary' }) => (
-  <Card className="h-100 shadow-sm">
+  <Card className="h-100 metric-card">
     <Card.Body>
       <Card.Text className="text-muted mb-1">{label}</Card.Text>
       <Card.Title className={`mb-1 text-${variant}`}>{value}</Card.Title>
@@ -89,7 +89,7 @@ const ObservabilityScreen = () => {
       <div className="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4">
         <div>
           <h1 className="mb-1">System Observability</h1>
-          <p className="text-muted mb-0">Live, current-process operational telemetry.</p>
+          <p className="text-muted mb-0">API health, request activity and cache performance at a glance.</p>
         </div>
         <div className="text-md-end">
           <Button variant="outline-primary" onClick={refetch} disabled={isFetching}>
@@ -116,26 +116,26 @@ const ObservabilityScreen = () => {
 
       <h2 className="h4 mb-3">System Status</h2>
       <Row className="g-3 mb-4">
-        <Col md={3}><MetricCard label="API" value={<StatusBadge status={summary.services.api} />} /></Col>
-        <Col md={3}><MetricCard label="MongoDB" value={<StatusBadge status={summary.services.mongodb} />} /></Col>
-        <Col md={3}><MetricCard label="Redis" value={<StatusBadge status={summary.services.redis === 'up' ? 'up' : 'degraded'} />} hint="Optional cache service" /></Col>
-        <Col md={3}><MetricCard label="Uptime" value={formatUptime(summary.uptimeSeconds)} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="API" value={<StatusBadge status={summary.services.api} />} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="MongoDB" value={<StatusBadge status={summary.services.mongodb} />} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Redis" value={<StatusBadge status={summary.services.redis === 'up' ? 'up' : 'degraded'} />} hint="Optional cache service" /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Uptime" value={formatUptime(summary.uptimeSeconds)} /></Col>
       </Row>
 
       <h2 className="h4 mb-3">Traffic</h2>
       <Row className="g-3 mb-4">
-        <Col md={3}><MetricCard label="Requests" value={formatNumber(summary.http.requests)} /></Col>
-        <Col md={3}><MetricCard label="Server Errors" value={formatNumber(summary.http.errors)} variant={summary.http.errors ? 'danger' : 'success'} hint="HTTP 5xx only" /></Col>
-        <Col md={3}><MetricCard label="Error Rate" value={`${summary.http.errorRate}%`} /></Col>
-        <Col md={3}><MetricCard label="Average Latency" value={`${summary.http.averageLatencyMs} ms`} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Requests" value={formatNumber(summary.http.requests)} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Server Errors" value={formatNumber(summary.http.errors)} variant={summary.http.errors ? 'danger' : 'success'} hint="HTTP 5xx only" /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Error Rate" value={`${summary.http.errorRate}%`} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Average Latency" value={`${summary.http.averageLatencyMs} ms`} /></Col>
       </Row>
 
       <h2 className="h4 mb-3">Redis Cache</h2>
       <Row className="g-3 mb-4">
-        <Col md={3}><MetricCard label="Hits" value={formatNumber(summary.cache.hits)} variant="success" /></Col>
-        <Col md={3}><MetricCard label="Misses" value={formatNumber(summary.cache.misses)} /></Col>
-        <Col md={3}><MetricCard label="Hit Ratio" value={`${summary.cache.hitRatio}%`} /></Col>
-        <Col md={3}><MetricCard label="Cache Errors" value={formatNumber(summary.cache.errors)} variant={summary.cache.errors ? 'danger' : 'success'} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Hits" value={formatNumber(summary.cache.hits)} variant="success" /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Misses" value={formatNumber(summary.cache.misses)} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Hit Ratio" value={`${summary.cache.hitRatio}%`} /></Col>
+        <Col xs={12} sm={6} lg={3}><MetricCard label="Cache Errors" value={formatNumber(summary.cache.errors)} variant={summary.cache.errors ? 'danger' : 'success'} /></Col>
       </Row>
 
       <h2 className="h4 mb-3">Runtime</h2>
@@ -151,14 +151,14 @@ const ObservabilityScreen = () => {
             <Col lg={6}>
               <ChartCard title="Request Traffic">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="time" /><YAxis allowDecimals={false} /><Tooltip /><Line type="monotone" dataKey="requests" stroke="#0d6efd" strokeWidth={2} dot={false} name="Requests" /></LineChart>
+                  <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="time" /><YAxis allowDecimals={false} /><Tooltip /><Line type="monotone" dataKey="requests" stroke="#175b4e" strokeWidth={2} dot={false} name="Requests" /></LineChart>
                 </ResponsiveContainer>
               </ChartCard>
             </Col>
             <Col lg={6}>
               <ChartCard title="Average Latency">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="time" /><YAxis unit=" ms" /><Tooltip /><Line type="monotone" dataKey="averageLatencyMs" stroke="#6f42c1" strokeWidth={2} dot={false} name="Latency" /></LineChart>
+                  <LineChart data={chartData}><CartesianGrid strokeDasharray="3 3" /><XAxis dataKey="time" /><YAxis unit=" ms" /><Tooltip /><Line type="monotone" dataKey="averageLatencyMs" stroke="#527d74" strokeWidth={2} dot={false} name="Latency" /></LineChart>
                 </ResponsiveContainer>
               </ChartCard>
             </Col>

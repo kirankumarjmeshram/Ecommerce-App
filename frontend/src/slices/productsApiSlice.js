@@ -4,19 +4,24 @@ import { apiSlice } from "./apiSlice";
 export const productsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         getProducts: builder.query({
-            query: () => ({
-                url: `/${PRODUCTS_URL}`
+            query: (params = {}) => ({
+                url: `/${PRODUCTS_URL}`, params,
             }),
             providesTags: ["Product"],// we dont need to refresh the page
             keepUnusedDataFor: 5,
         }),
 
+        getProductCategories: builder.query({
+            query: () => ({ url: `/${PRODUCTS_URL}/categories` }),
+            providesTags: ['Product'],
+        }),
         getProductDetail: builder.query({
             query: (productId) => ({
                 url: `/${PRODUCTS_URL}/${productId}`
                 // url: `/api/products/${productId}`,
             }),
-            keepUnusedDataFor: 5
+            keepUnusedDataFor: 5,
+            providesTags: ['Product'],
         }),
         // createProduct: builder.mutation({
         //     query: () =>({
@@ -52,4 +57,4 @@ export const productsApiSlice = apiSlice.injectEndpoints({
     })
 });
 
-export const { useGetProductsQuery, useGetProductDetailQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } = productsApiSlice;
+export const { useGetProductsQuery, useGetProductCategoriesQuery, useGetProductDetailQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } = productsApiSlice;

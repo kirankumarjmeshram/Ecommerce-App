@@ -1,17 +1,18 @@
 import { Spinner } from "react-bootstrap";
 const Loader = () => {
   return (
-    <div className="d-flex justify-content-center">
+    <div className="loading-state">
       <Spinner
         animation="border"
         role="status"
         style={{
-          width: "100px",
-          height: "100px",
+          width: "28px",
+          height: "28px",
           margin: "auto",
           display: "block",
         }}
-      ></Spinner>
+      ><span className="visually-hidden">Loading, please wait</span></Spinner>
+      <span aria-hidden="true">Loading…</span>
     </div>
   );
 };

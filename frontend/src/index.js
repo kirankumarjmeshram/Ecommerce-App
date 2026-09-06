@@ -16,6 +16,7 @@ import store from "./store";
 
 import AdminRoute from "./components/AdminRoute";
 import HomeScreen from "./screens/HomeScreen";
+import ProductsScreen from "./screens/ProductsScreen";
 import ProductScreen from "./screens/ProductScreen";
 import CartScreen from "./screens/CartScreen";
 import LoginScreen from "./screens/LoginScreen";
@@ -41,6 +42,7 @@ const router = createBrowserRouter(
     <Route path="/" element={<App />}>
       <Route index={true} path="/" element={<HomeScreen />} />
       <Route path="/product/:id" element={<ProductScreen />} />
+      <Route path="/products" element={<ProductsScreen />} />
       <Route path="/cart" element = {<CartScreen />} />
       <Route path="/login" element={<LoginScreen/>} />
       <Route path="/register" element={<RegisterScreen/>}/>

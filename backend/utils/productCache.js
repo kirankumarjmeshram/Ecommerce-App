@@ -35,7 +35,7 @@ const createProductListCacheKey = (query = {}) => {
     })
     .join('&');
 
-  return `${PRODUCT_LIST_KEY_PREFIX}${signature || 'all'}`;
+  return `${PRODUCT_LIST_KEY_PREFIX}v2:${signature || 'all'}`;
 };
 
 const readCache = async (key, { requestId } = {}) => {

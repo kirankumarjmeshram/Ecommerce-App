@@ -1,3 +1,5 @@
+import PageHeader from '../../components/PageHeader';
+import StatusBadge from '../../components/StatusBadge';
 import { Button, Table } from 'react-bootstrap';
 import { FaEdit, FaTrash } from 'react-icons/fa';
 import { Link } from 'react-router-dom';
@@ -33,7 +35,7 @@ const UserListScreen = () => {
 
   return (
     <>
-      <h1>Users</h1>
+      <PageHeader eyebrow="Store administration" title="Users" description="Manage customer accounts and administrator access." />
       {isDeleting && <Loader />}
       {users.length === 0 ? (
         <Message variant="info">No users found.</Message>
@@ -53,7 +55,7 @@ const UserListScreen = () => {
               <tr key={user._id}>
                 <td>{user.name}</td>
                 <td>{user.email}</td>
-                <td>{user.isAdmin ? 'Admin' : 'User'}</td>
+                <td><StatusBadge positive={user.isAdmin}>{user.isAdmin ? 'Admin' : 'Customer'}</StatusBadge></td>
                 <td>{user.createdAt ? new Date(user.createdAt).toLocaleDateString() : '—'}</td>
                 <td className="text-nowrap">
                   <Button as={Link} to={`/admin/user/${user._id}/edit`} variant="light" className="btn-sm me-2" aria-label={`Edit ${user.name}`}>

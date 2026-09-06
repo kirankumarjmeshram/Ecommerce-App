@@ -8,14 +8,15 @@ import 'react-toastify/dist/ReactToastify.css';
 const App = () => {
   return (
     <>
+      <a className="skip-link" href="#main-content">Skip to content</a>
       <Header/>
-      <main className='py-3'>
+      <main id="main-content" className='store-main'>
         <Container>
           <Outlet/>
         </Container>
       </main>
       <Footer/>
-      <ToastContainer/>
+      <ToastContainer position="bottom-right" autoClose={4000} theme="light"/>
     </>
   );
 }

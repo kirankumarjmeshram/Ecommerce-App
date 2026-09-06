@@ -1,4 +1,7 @@
-import { Link } from "react-router-dom";
+import PageHeader from '../../components/PageHeader';
+import formatCurrency from '../../utils/formatCurrency';
+import { Link, useSearchParams } from "react-router-dom";
+import CatalogPagination from '../../components/CatalogPagination';
 import { Table, Button, Row, Col } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaEdit, FaTrash } from "react-icons/fa";
@@ -10,7 +13,9 @@ import {
 } from "../../slices/productsApiSlice";
 
 const ProductListScreen = () => {
-  const { data: products, isLoading, error } = useGetProductsQuery();
+  const [params] = useSearchParams();
+  const { data, isLoading, error } = useGetProductsQuery({ page: params.get('page') || 1 });
+  const products = data?.products || [];
 
   const [deleteProduct, { isLoading: loadingDelete }] =
     useDeleteProductMutation();
@@ -29,11 +34,11 @@ const ProductListScreen = () => {
     <>
       <Row className="align-items-center">
         <Col>
-          <h1>Products</h1>
+          <PageHeader eyebrow="Store administration" title="Products" description="Manage your collection and product details." />
         </Col>
         <Col className="text-end">
           <Button as={Link} to="/admin/product/create" className="btn-sm m-3">
-            <FaEdit /> create Product
+            <FaEdit /> Create product
           </Button>
         </Col>
       </Row>
@@ -55,15 +60,16 @@ const ProductListScreen = () => {
                 <th>PRICE</th>
                 <th>CATEGORY</th>
                 <th>BRAND</th>
-                <th></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
+              {products.length === 0 && <tr><td colSpan={6} className="text-center py-4">No products yet. Create a product to begin your collection.</td></tr>}
               {products.map((product) => (
                 <tr key={product._id}>
                   <td>{product._id}</td>
                   <td>{product.name}</td>
-                  <td>{product.price}</td>
+                  <td>{formatCurrency(product.price)}</td>
                   <td>{product.category}</td>
                   <td>{product.brand}</td>
                   <td>
@@ -78,6 +84,7 @@ const ProductListScreen = () => {
                     <Button
                       variant="danger"
                       className="btn-sm mx-2"
+                      aria-label={`Delete ${product.name}`}
                       onClick={() => deleteHandler(product._id)}
                     >
                       <FaTrash style={{ color: "white" }} />
@@ -87,6 +94,7 @@ const ProductListScreen = () => {
               ))}
             </tbody>
           </Table>
+          {data && <CatalogPagination page={data.page} pages={data.pages} search={params} pathname="/admin/productlist" />}
         </>
       )}
     </>

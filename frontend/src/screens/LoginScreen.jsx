@@ -44,7 +44,7 @@ const LoginScreen = () => {
   };
   return (
     <FormContainer>
-      <h1>Sign In</h1>
+      <h1>Sign In</h1><p className="text-muted">Welcome back. Sign in to manage your orders and continue shopping.</p>
       <Form onSubmit={submitHandler}>
         <Form.Group controlId="email" className="my-3">
           <Form.Label>Email Address</Form.Label>

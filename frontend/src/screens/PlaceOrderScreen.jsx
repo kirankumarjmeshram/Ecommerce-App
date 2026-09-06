@@ -1,3 +1,4 @@
+import formatCurrency from '../utils/formatCurrency';
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,6 +48,7 @@ const PlaceOrderScreen = () => {
   return (
     <>
       <CheckoutSteps step1 step2 step3 step4 />
+      <h1>Review your order</h1><p className="text-muted">Check your items and delivery details before continuing to secure payment.</p>
       <Row>
         <Col md={8}>
           <ListGroup variant="flush">
@@ -55,7 +57,7 @@ const PlaceOrderScreen = () => {
               <p>
                 <strong>Address: </strong>
                 {cart.shippingAddress.address}, {cart.shippingAddress.city},{" "}
-                {cart.shippingAddress.pstalCode}, {cart.shippingAddress.country}
+                {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
               </p>
             </ListGroup.Item>
             <ListGroup.Item>
@@ -86,7 +88,7 @@ const PlaceOrderScreen = () => {
                           </Link>
                         </Col>
                         <Col md={4}>
-                          {item.qty} x ₹{item.price} = ₹{item.qty * item.price}
+                          {item.qty} x {formatCurrency(item.price)} = {formatCurrency(item.qty * item.price)}
                         </Col>
                       </Row>
                     </ListGroup.Item>
@@ -97,7 +99,7 @@ const PlaceOrderScreen = () => {
           </ListGroup>
         </Col>
         <Col md={4}>
-          <Card>
+          <Card className="order-summary">
             <ListGroup variant="flush">
               <ListGroup.Item>
                 <h2>Order Summary</h2>
@@ -105,25 +107,25 @@ const PlaceOrderScreen = () => {
               <ListGroup.Item>
                 <Row>
                   <Col>Items</Col>
-                  <Col>₹{cart.itemPrice}</Col>
+                  <Col>{formatCurrency(cart.itemPrice)}</Col>
                 </Row>
               </ListGroup.Item>
               <ListGroup.Item>
                 <Row>
                   <Col>Shipping :</Col>
-                  <Col>₹{cart.shippingPrice}</Col>
+                  <Col>{formatCurrency(cart.shippingPrice)}</Col>
                 </Row>
               </ListGroup.Item>
               <ListGroup.Item>
                 <Row>
                   <Col>Tax</Col>
-                  <Col>₹{cart.taxPrice}</Col>
+                  <Col>{formatCurrency(cart.taxPrice)}</Col>
                 </Row>
               </ListGroup.Item>
               <ListGroup.Item>
                 <Row>
                   <Col>Total:</Col>
-                  <Col>₹{cart.totalPrice}</Col>
+                  <Col>{formatCurrency(cart.totalPrice)}</Col>
                 </Row>
               </ListGroup.Item>
               <ListGroup.Item>
@@ -132,12 +134,13 @@ const PlaceOrderScreen = () => {
               <ListGroup.Item>
                   <Button 
                   type="button"
-                  className="button"
+                  className="w-100"
                   disabled={cart.cartItems.length === 0}
                   onClick={placeOrderHandler}
                   >
                     Place Order
                   </Button>
+                  {isLoading && <Loader />}
               </ListGroup.Item>
             </ListGroup>
           </Card>

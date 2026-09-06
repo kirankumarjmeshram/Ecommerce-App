@@ -1,3 +1,4 @@
+import formatCurrency from '../utils/formatCurrency';
 import { useState, useEffect } from "react";
 import { Table, Form, Button, Row, Col } from "react-bootstrap";
 import { LinkContainer } from "react-router-bootstrap";
@@ -5,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Message from "../components/Message";
 import Loader from "../components/Loader";
-import { FaTimes } from "react-icons/fa";
+import StatusBadge from '../components/StatusBadge';
 import { useProfileMutation } from "../slices/usersApiSlice";
 import { setCredentials } from "../slices/authSlice";
 import { useGetMyOrdersQuery } from "../slices/ordersApiSlice";
@@ -53,9 +54,9 @@ const Profile = () => {
   };
 
   return (
-    <Row>
+    <Row className="g-4 account-layout">
       <Col md={3}>
-        <h2>Profile</h2>
+        <h1 className="h3">Your account</h1>
         <Form onSubmit={submitHandler}>
           <Form.Group className="my-2" controlId="name">
             <Form.Label>Name</Form.Label>
@@ -67,7 +68,7 @@ const Profile = () => {
             ></Form.Control>
           </Form.Group>
           <Form.Group className="my-2" controlId="email">
-            <Form.Label>email Address</Form.Label>
+            <Form.Label>Email address</Form.Label>
             <Form.Control
               type="email"
               placeholder="Enter email"
@@ -76,7 +77,7 @@ const Profile = () => {
             ></Form.Control>
           </Form.Group>
           <Form.Group className="my-2" controlId="password">
-            <Form.Label>password</Form.Label>
+            <Form.Label>New password</Form.Label>
             <Form.Control
               type="password"
               placeholder="Enter password"
@@ -100,7 +101,7 @@ const Profile = () => {
         </Form>
       </Col>
       <Col md={9}>
-        <h2>My Orders</h2>
+        <h2>Order history</h2>
         {isLoading ? (
           <Loader />
         ) : error ? (
@@ -120,23 +121,24 @@ const Profile = () => {
               </tr>
             </thead>
             <tbody>
+              {orders.length === 0 && <tr><td colSpan={6} className="text-center py-4">No orders yet. Your purchases will appear here.</td></tr>}
               {orders.map((order) => (
                 <tr key={order._id}>
                   <td>{order._id}</td>
                   <td>{order.createdAt?.substring(0, 10)}</td>
-                  <td>{order.totalPrice.toFixed(2)}</td>
+                  <td>{formatCurrency(order.totalPrice)}</td>
                   <td>
                     {order.isPaid?(
-                      order.paidAt?.substring(0, 10))
+                      <StatusBadge positive>Paid</StatusBadge>)
                       :(
-                        <FaTimes style={{color:'red'}} />
+                        <StatusBadge positive={false}>Pending</StatusBadge>
                       )}
                   </td>
                   <td>
                     {order.isDelivered?(
-                      order.paidDeliverd?.substring(0, 10))
+                      <StatusBadge positive>Delivered</StatusBadge>)
                       :(
-                        <FaTimes style={{color:'red'}} />
+                        <StatusBadge positive={false}>Pending</StatusBadge>
                       )}
                   </td>
                   <td>

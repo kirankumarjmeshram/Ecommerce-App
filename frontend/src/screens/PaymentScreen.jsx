@@ -28,7 +28,7 @@ const PaymentScreen = () => {
   return (
     <FormContainer>
       <CheckoutSteps step1 step2 step3 step4 />
-      <h1>Payment Method</h1>
+      <h1>Payment Method</h1><p className="text-muted">Secure payment via Razorpay. Available UPI, card and net banking options are shown at checkout.</p>
       <Form onSubmit={ submitHandler }>
         <Form.Group>
           <Form.Label as="legend">Select Method</Form.Label>

@@ -1,7 +1,7 @@
 import {FaStar, FaStarHalfAlt, FaRegStar} from "react-icons/fa"
 const Rating = ({value, text}) => {
   return (
-    <div className="rating">
+    <div className="rating" aria-label={`${value || 0} out of 5 stars, ${text || ''}`}>
         <span>
             {value>=1?<FaStar/>:value>=0.5?<FaStarHalfAlt/>:<FaRegStar/>}
         </span>

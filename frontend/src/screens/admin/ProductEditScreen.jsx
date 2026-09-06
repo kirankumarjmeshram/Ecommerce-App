@@ -4,6 +4,7 @@ import { Form, Button } from "react-bootstrap";
 import Message from "../../components/Message";
 import Loader from "../../components/Loader";
 import FormContainer from "../../components/FormContainer";
+import CategoryInput from '../../components/CategoryInput';
 import { toast } from "react-toastify";
 import {
   useUpdateProductMutation,
@@ -113,15 +114,7 @@ const ProductEditScreen = () => {
                 onChange={(e) => setBrand(e.target.value)}
               />
             </Form.Group>
-            <Form.Group controlId="category" className="my-2">
-              <Form.Label>Category</Form.Label>
-              <Form.Control
-                type="text"
-                placeholder="Enter Category"
-                value={category}
-                onChange={(e) => setCategory(e.target.value)}
-              />
-            </Form.Group>
+            <CategoryInput value={category} onChange={(event) => setCategory(event.target.value)} />
             <Form.Group controlId="countInStock" className="my-2">
               <Form.Label>Count In Stock</Form.Label>
               <Form.Control
