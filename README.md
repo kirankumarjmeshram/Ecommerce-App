@@ -4,6 +4,8 @@ ShopSphere is the replaceable storefront display brand. Repository/package names
 
 ## Documentation
 
+See [Product discovery](docs/product-discovery.md) for catalog parameters, Redis behavior, category data and testing.
+
 Current engineering documentation, architecture, API inventory, security notes, and planned work are in [docs/README.md](docs/README.md).
 
 A full-stack **E-commerce Web Application** built using the MERN stack (MongoDB, Express, React, Node.js).
@@ -16,7 +18,8 @@ This project demonstrates end-to-end functionality of an online shopping platfor
 ### 👤 User Features
 
 * User Registration & Login (JWT based authentication)
-* Browse Products
+* Dedicated `/products` catalog with database categories, server-side search, price/stock filters, sorting and pagination
+* Shareable URL-driven discovery, header search, category navigation and a manual homepage carousel
 * Add to Cart / Remove from Cart
 * Place Orders
 * View Order History

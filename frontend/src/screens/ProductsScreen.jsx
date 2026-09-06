@@ -48,7 +48,7 @@ const ProductsScreen = () => {
       </details>
       <section aria-label="Product results" aria-busy={isFetching}>
         <div className="catalog-toolbar">
-          <div aria-live="polite">{data ? `${data.totalProducts} products found` : 'Browse products'}{params.get('keyword') && <p className="small text-muted mb-0">Search: “{params.get('keyword')}”</p>}</div>
+          <div aria-live="polite">{data ? `${data.totalProducts} ${data.totalProducts === 1 ? 'product' : 'products'} found` : 'Browse products'}{params.get('keyword') && <p className="small text-muted mb-0">Search: “{params.get('keyword')}”</p>}</div>
           <Form.Group controlId="catalog-sort"><Form.Label>Sort By</Form.Label><Form.Select value={params.get('sort') || 'newest'} onChange={(e) => update({ sort: e.target.value })}>
             <option value="newest">Newest</option><option value="price_asc">Price: Low to High</option><option value="price_desc">Price: High to Low</option><option value="rating_desc">Customer Rating</option>
           </Form.Select></Form.Group>

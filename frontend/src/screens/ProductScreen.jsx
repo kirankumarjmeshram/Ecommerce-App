@@ -19,7 +19,7 @@ const ProductScreen = () => {
   const addToCartHandler = () => { dispatch(addToCart({ ...product, qty })); navigate('/cart'); };
   return (
     <>
-      <Link className="back-link" to="/">← Back to collection</Link>
+      <Link className="back-link" to="/products">← Back to collection</Link>
       {isLoading ? <Loader /> : error ? <Message variant="danger">{error?.data?.message || error.error}</Message> : (
         <Row className="g-4 g-lg-5 product-detail">
           <Col lg={6}><div className="detail-image"><img src={product.image} alt={product.name} /></div></Col>
