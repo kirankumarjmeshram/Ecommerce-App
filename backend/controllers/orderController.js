@@ -12,7 +12,7 @@ const assertOrderId = (id, res) => {
   }
 };
 
-const canAccessOrder = (order, user) => user.isAdmin || order.user.toString() === user._id.toString();
+const canAccessOrder = (order, user) => user.isAdmin || String(order.user?._id || order.user) === String(user._id);
 
 const getValidatedShippingAddress = (shippingAddress, res) => {
   const fields = ['address', 'city', 'postalCode', 'country'];
@@ -116,18 +116,27 @@ const getOrderById = asyncHandler(async (req, res) => {
   res.status(200).json(order);
 });
 
-const updateOrderToDelevered = asyncHandler(async (req, res) => {
+const transitionOrder = async (req, res, target) => {
   assertOrderId(req.params.id, res);
   const order = await Order.findById(req.params.id);
   if (!order) {
     res.status(404);
     throw new Error('Order not found');
   }
-  if (!order.isDelivered) {
-    order.isDelivered = true;
-    order.deliveredAt = new Date();
-  }
-  res.json(await order.save());
+  const current = order.isDelivered ? 'Delivered' : order.orderStatus || 'Placed';
+  const next = { Placed: 'Processing', Processing: 'Shipped', Shipped: 'Delivered' };
+  if (!order.isPaid || next[current] !== target) { res.status(409); throw new Error('Fulfillment requires confirmed payment and the next forward status.'); }
+  const update = { orderStatus: target, [target === 'Processing' ? 'processingAt' : target === 'Shipped' ? 'shippedAt' : 'deliveredAt']: new Date() };
+  if (target === 'Delivered') update.isDelivered = true;
+  const statusCondition = current === 'Placed' ? { $or: [{ orderStatus: 'Placed' }, { orderStatus: { $exists: false } }] } : { orderStatus: current };
+  const updated = await Order.findOneAndUpdate({ _id: order._id, isPaid: true, isDelivered: false, ...statusCondition }, { $set: update }, { new: true });
+  if (!updated) { res.status(409); throw new Error('Order changed. Refresh and try again.'); }
+  res.json(updated);
+};
+const updateOrderToDelevered = asyncHandler(async (req, res) => transitionOrder(req, res, 'Delivered'));
+const updateOrderFulfillment = asyncHandler(async (req, res) => {
+  if (!['Processing', 'Shipped', 'Delivered'].includes(req.body.orderStatus)) { res.status(400); throw new Error('Invalid fulfillment status'); }
+  return transitionOrder(req, res, req.body.orderStatus);
 });
 
 const getOrders = asyncHandler(async (req, res) => {
@@ -135,4 +144,4 @@ const getOrders = asyncHandler(async (req, res) => {
   res.status(200).json(orders);
 });
 
-export { addOrderItems, getMyOrders, getOrderById, updateOrderToDelevered, getOrders };
+export { addOrderItems, getMyOrders, getOrderById, updateOrderToDelevered, updateOrderFulfillment, getOrders };

@@ -8,7 +8,7 @@ const sorts = {
 // Only scalar, explicitly supported values reach MongoDB or a cache key.
 export const parseProductQuery = (query) => {
   const fail = (message) => { const error = new Error(message); error.statusCode = 400; throw error; };
-  const allowed = ['keyword', 'category', 'minPrice', 'maxPrice', 'inStock', 'sort', 'page', 'limit'];
+  const allowed = ['keyword', 'category', 'minPrice', 'maxPrice', 'inStock', 'rating', 'sort', 'page', 'limit'];
   for (const [key, value] of Object.entries(query)) {
     if (!allowed.includes(key) || typeof value !== 'string') fail('Invalid catalog query');
   }
@@ -22,6 +22,11 @@ export const parseProductQuery = (query) => {
     normalized[key] = value;
   }
   const filter = {};
+  if (query.rating !== undefined) {
+    if (!['1', '2', '3', '4', '5'].includes(query.rating)) fail('Rating must be between 1 and 5');
+    normalized.rating = Number(query.rating);
+    filter.rating = { $gte: normalized.rating };
+  }
   for (const key of ['minPrice', 'maxPrice']) {
     if (query[key] === undefined || query[key] === '') continue;
     const value = Number(query[key]);

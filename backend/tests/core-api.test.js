@@ -62,6 +62,10 @@ test('orders use MongoDB pricing and enforce owner/admin delivery access', async
   const admin = await User.create({ name: 'Admin', email: 'admin@test.local', password: 'Password123!', isAdmin: true });
   const adminAgent = request.agent(app); await adminAgent.post('/api/users/auth').send({ email: admin.email, password: 'Password123!' }).expect(200);
   await adminAgent.get(`/api/orders/${created.body._id}`).expect(200);
+  await adminAgent.put(`/api/orders/${created.body._id}/deliver`).expect(409);
+  await Order.findByIdAndUpdate(created.body._id, { isPaid: true });
+  await adminAgent.put(`/api/orders/${created.body._id}/fulfillment`).send({ orderStatus: 'Processing' }).expect(200);
+  await adminAgent.put(`/api/orders/${created.body._id}/fulfillment`).send({ orderStatus: 'Shipped' }).expect(200);
   const delivered = await adminAgent.put(`/api/orders/${created.body._id}/deliver`).expect(200);
   expect(delivered.body.isDelivered).toBe(true); expect(delivered.body.deliveredAt).toBeTruthy();
 });

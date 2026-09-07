@@ -2,6 +2,7 @@ import express from 'express';
 const router = express.Router();
 import { getProducts, getProductCategories, getProductById, createProduct, updateProduct, deleteProduct } from '../controllers/productController.js';
 import {protect, admin } from '../middleware/authMiddleware.js';
+import { createReview, updateReview, deleteReview, reviewEligibility } from '../controllers/reviewController.js';
 // router.get('/', asyncHandler(async (req, res)=>{
 //     const products = await Product.find({}); // passing empty object to get all
 //     res.json(products);
@@ -20,6 +21,9 @@ import {protect, admin } from '../middleware/authMiddleware.js';
 
 router.route('/').get(getProducts).post(protect, admin, createProduct);
 router.get('/categories', getProductCategories);
+router.get('/:id/review-eligibility', protect, reviewEligibility);
+router.post('/:id/reviews', protect, createReview);
+router.route('/:id/reviews/:reviewId').put(protect, updateReview).delete(protect, deleteReview);
 router.route('/:id').get(getProductById).put(protect, admin, updateProduct).delete(protect, admin, deleteProduct);
 
 

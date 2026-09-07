@@ -1,0 +1,26 @@
+// Disposable local-only browser fixture. Never loads .env or connects to Atlas.
+import { MongoMemoryServer } from 'mongodb-memory-server';
+import mongoose from 'mongoose';
+import express from 'express';
+import path from 'node:path';
+process.env.NODE_ENV = 'test';
+process.env.JWT_SECRET = 'isolated-commerce-preview-secret';
+process.env.CLIENT_URL = 'http://127.0.0.1:4174';
+const { default: app } = await import('../app.js');
+const { default: User } = await import('../models/userModel.js');
+const { default: Product } = await import('../models/productModel.js');
+const { default: Order } = await import('../models/orderModel.js');
+const mongo = await MongoMemoryServer.create();
+await mongoose.connect(mongo.getUri());
+const customer = await User.create({ name: 'Preview Buyer', email: 'buyer@preview.local', password: 'PreviewOnly123!' });
+const admin = await User.create({ name: 'Preview Admin', email: 'admin@preview.local', password: 'PreviewOnly123!', isAdmin: true });
+const product = await Product.create({ user: admin._id, name: 'Preview headphones', image: '/images/airpods.jpg', brand: 'Preview', category: 'Audio', description: 'Disposable local browser test product.', price: 500, countInStock: 10 });
+await Product.create({ user: admin._id, name: 'Preview mouse', image: '/images/mouse.jpg', brand: 'Preview', category: 'Accessories', description: 'Disposable local browser test product.', price: 100, countInStock: 5 });
+const order = await Order.create({ user: customer._id, orderItems: [{ product: product._id, name: product.name, image: product.image, qty: 1, price: 500 }], shippingAddress: { address: 'Test address', city: 'Test city', postalCode: '000000', country: 'India' }, paymentMethod: 'Razorpay', isPaid: true, paidAt: new Date(), itemsPrice: 500, totalPrice: 660, shippingPrice: 100, taxPrice: 60 });
+const build = path.resolve(process.env.COMMERCE_PREVIEW_BUILD || '../frontend/build');
+const web = express(); web.use(express.static(build)); web.get('*', (req, res) => res.sendFile(path.join(build, 'index.html')));
+const apiServer = app.listen(5002, '127.0.0.1');
+const webServer = web.listen(4174, '127.0.0.1');
+console.log(JSON.stringify({ preview: 'http://127.0.0.1:4174', productId: product._id, orderId: order._id, customerId: customer._id }));
+const stop = async () => { apiServer.close(); webServer.close(); await mongoose.disconnect(); await mongo.stop(); process.exit(0); };
+process.on('SIGINT', stop); process.on('SIGTERM', stop);

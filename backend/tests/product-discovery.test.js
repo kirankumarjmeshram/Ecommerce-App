@@ -17,11 +17,15 @@ test('default list and categories have metadata and real distinct categories', a
   expect(body.products.map((p) => p.name)).toEqual(['Mouse', 'Speaker', 'Wireless headphones']);
   const categories = await request(app).get('/api/products/categories').expect(200);
   expect(categories.body.categories).toEqual(['Accessories', 'Audio']);
+  expect(categories.body.priceRange).toEqual({ min: 100, max: 300 });
 });
 
 test.each([
   ['keyword=wireless', 3], ['keyword=room', 1], ['keyword=Sound', 1],
   ['keyword=%2E%2A', 0], ['category=Audio', 2], ['category=Missing', 0],
+  ['rating=4', 2], ['category=Audio&rating=4', 2], ['category=Accessories&rating=4', 0],
+  ['rating=5', 1], ['rating=3', 3], ['rating=4&inStock=true', 1],
+  ['rating=4&minPrice=200', 1], ['keyword=wireless&category=Audio&rating=4&minPrice=50&maxPrice=200&inStock=true&sort=price_asc&page=1&limit=12', 1],
   ['minPrice=200', 2], ['maxPrice=100', 1], ['inStock=true', 2],
   ['category=Audio&minPrice=200&inStock=true', 0],
   ['category=Audio&minPrice=100&maxPrice=250&keyword=wireless', 1],
@@ -48,7 +52,7 @@ test('category + sort + page and out-of-range/empty pages', async () => {
   expect(empty.body.totalProducts).toBe(3);
 });
 
-test.each(['page=0', 'page=1.5', 'limit=101', 'minPrice=-1', 'maxPrice=abc', 'minPrice=300&maxPrice=100', 'sort=__proto__', 'inStock=yes', 'category[$ne]=Audio', 'keyword=a&keyword=b', 'unknown=value'])('rejects invalid input: %s', async (query) => {
+test.each(['page=0', 'page=abc', 'page=1.5', 'limit=0', 'limit=101', 'rating=abc', 'rating=10', 'rating=100', 'rating=0', 'rating=4.5', 'rating[$gte]=4', 'minPrice=-1', 'maxPrice=abc', 'minPrice=300&maxPrice=100', 'sort=__proto__', 'inStock=yes', 'category[$ne]=Audio', 'keyword=a&keyword=b', 'unknown=value'])('rejects invalid input: %s', async (query) => {
   await request(app).get(`/api/products?${query}`).expect(400);
 });
 
@@ -57,4 +61,6 @@ test('normalized cache keys share defaults but isolate every discovery dimension
   expect(key({})).toBe(key({ page: '1', limit: '12', sort: 'newest', inStock: 'false' }));
   const variants = [{ keyword: 'mouse' }, { category: 'Audio' }, { minPrice: '10' }, { maxPrice: '100' }, { inStock: 'true' }, { sort: 'price_asc' }, { page: '2' }, { limit: '2' }];
   expect(new Set([key({}), ...variants.map(key)]).size).toBe(9);
+  expect(key({ rating: '4' })).not.toBe(key({ rating: '3' }));
+  expect(key({ rating: '4', category: 'Audio', keyword: 'wireless' })).not.toBe(key({ rating: '3', category: 'Audio', keyword: 'wireless' }));
 });

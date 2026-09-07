@@ -17,12 +17,16 @@ const protect = asyncHandler(async (req, res, next) => {
                 res.status(401);
                 throw new Error('Not authorized, user no longer exists');
             }
-            next();
 
         } catch (error) {
             res.status(401);
             throw new Error('Not authorized, token failed');
         }
+        if (req.user.status === 'suspended') {
+            res.status(403);
+            throw new Error('This account is suspended. Contact the store administrator.');
+        }
+        next();
     }else{
         res.status(401);
         throw new Error('Not Authorized, no token');

@@ -3,6 +3,10 @@ import { ORDERS_URL, PAYMENTS_URL } from "../constants";
 
 export const ordersApiSlice = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
+    updateFulfillment: builder.mutation({
+      query: ({ orderId, orderStatus }) => ({ url: `${ORDERS_URL}/${orderId}/fulfillment`, method: 'PUT', body: { orderStatus } }),
+      invalidatesTags: ['Order', 'Product'],
+    }),
     createOrder: builder.mutation({
       query: (order) => ({
         url: ORDERS_URL,
@@ -11,6 +15,7 @@ export const ordersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     getOrderDetails: builder.query({
+      providesTags: ['Order'],
       query: (orderId) => ({
         url: `/${ORDERS_URL}/${orderId}`,
       }),
@@ -30,11 +35,13 @@ export const ordersApiSlice = apiSlice.injectEndpoints({
       }),
     }),
     getMyOrders: builder.query({
+      providesTags: ['Order'],
       query: () => ({
         url: `/${ORDERS_URL}/myorders`,
         }),
     }),
     getOrders: builder.query({
+      providesTags: ['Order'],
       query: () => ({
         url: `/${ORDERS_URL}`,
       }),
@@ -50,6 +57,7 @@ export const ordersApiSlice = apiSlice.injectEndpoints({
 });
 
 export const {
+  useUpdateFulfillmentMutation,
   useCreateOrderMutation,
   useGetOrderDetailsQuery,
   useCreateRazorpayOrderMutation,

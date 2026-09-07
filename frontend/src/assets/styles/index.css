@@ -4,6 +4,20 @@
   --radius: 12px; --shadow: 0 6px 24px rgba(25,46,43,.045); --space: 1.5rem;
 }
 .header-search { display: flex; gap: .4rem; min-width: 0; flex: 1; margin: .5rem 1rem; }
+.catalog-skeleton { min-height: 370px; border: 1px solid var(--border); border-radius: var(--radius); background: linear-gradient(#e8ede7 60%, #f1f4ef 60%); }
+.rating-stars { color: #956515; letter-spacing: .1em; }
+.filter-controls { display: grid; gap: 1.2rem; margin-top: 1rem; }
+.star-selector legend,.filter-controls legend { font-size: .9rem; font-weight: 600; }
+.star-options { display: flex; gap: .2rem; }
+.star-options label { display: grid; place-items: center; width: 32px; height: 36px; cursor: pointer; color: #956515; font-size: 1.3rem; border-radius: 4px; }
+.star-options input:focus-visible + label { outline: 3px solid #175b4e; outline-offset: 2px; }
+.dual-range { position: relative; height: 42px; margin: .5rem 0; background: linear-gradient(transparent 45%, #cad8d0 45%, #cad8d0 55%, transparent 55%); }
+.dual-range input { position: absolute; inset: 0; width: 100%; margin: 0; appearance: none; background: transparent; pointer-events: none; }
+.dual-range input::-webkit-slider-thumb { appearance: none; width: 20px; height: 20px; border-radius: 50%; background: var(--primary); border: 2px solid white; pointer-events: auto; cursor: grab; }
+.dual-range input::-moz-range-thumb { width: 18px; height: 18px; border-radius: 50%; background: var(--primary); border: 2px solid white; pointer-events: auto; cursor: grab; }
+.reviews-section { margin-top: 3rem; } .review-card,.review-form,.order-tracking { background: white; padding: 1.4rem; border: 1px solid var(--border); border-radius: var(--radius); margin-bottom: 1rem; }
+.review-card h3 { margin: .8rem 0; } .review-comment { white-space: pre-wrap; overflow-wrap: anywhere; } .review-form { display: grid; gap: 1rem; max-width: 640px; }
+.order-timeline { list-style: none; display: flex; flex-wrap: wrap; gap: 1rem; padding: 0; font-size: .85rem; color: var(--muted); } .order-timeline .complete { color: var(--primary); font-weight: 600; }
 .header-search input { min-width: 0; width: 100%; }
 .catalog-layout { display: grid; grid-template-columns: 230px minmax(0,1fr); gap: 2rem; }
 .catalog-filters { align-self: start; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem; }

@@ -4,16 +4,22 @@ import { FaShieldAlt, FaShoppingBag, FaBoxOpen } from 'react-icons/fa';
 import Product from '../components/Product';
 import { useGetProductsQuery, useGetProductCategoriesQuery } from '../slices/productsApiSlice';
 import Loader from '../components/Loader';
-import Message from '../components/Message';
+import ApiError from '../components/ApiError';
+import { useState } from 'react';
+import useReducedMotion from '../hooks/useReducedMotion';
 
 const HomeScreen = () => {
-  const { data, isLoading, error } = useGetProductsQuery({ limit: 4, sort: 'newest' });
+  const reducedMotion = useReducedMotion();
+  const [paused, setPaused] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const { data, isLoading, error, refetch } = useGetProductsQuery({ limit: 4, sort: 'newest' });
   const { data: categoryData, error: categoryError } = useGetProductCategoriesQuery();
   const products = data?.products || [];
   const featured = products.find((product) => product.countInStock > 0) || products[0];
   return (
     <>
-      <Carousel fade interval={null} className="home-carousel" aria-label="ShopSphere highlights">
+      <button className="btn btn-link btn-sm" onClick={() => setPaused(!paused)} disabled={reducedMotion}>{reducedMotion ? 'Automatic slides disabled for reduced motion' : paused ? 'Play slides' : 'Pause slides'}</button>
+      <Carousel fade={!reducedMotion} interval={paused || focused || reducedMotion ? null : 5000} pause="hover" onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }} className="home-carousel" aria-label="ShopSphere highlights">
       <Carousel.Item><section className="store-hero" aria-labelledby="hero-title">
         <div className="hero-copy"><p className="eyebrow">The everyday edit</p>
           <h1 id="hero-title">Good finds.<br />Better everyday.</h1>
@@ -36,7 +42,7 @@ const HomeScreen = () => {
       <section className="category-section" aria-labelledby="categories-title"><div className="page-heading"><h2 id="categories-title">Shop by Category</h2><Link to="/products">All Categories →</Link></div><div className="category-tiles">{categoryData?.categories.map((category) => <Link key={category} to={`/products?${new URLSearchParams({ category })}`}><FaBoxOpen aria-hidden="true" />{category}<span aria-hidden="true">↗</span></Link>)}</div>{categoryError && <p className="text-muted">Categories are temporarily unavailable.</p>}</section>
       <section id="collection" className="collection">
         <div className="page-heading"><div><p className="eyebrow">Find your next favourite</p><h2>Latest products</h2></div><Link to="/products">View All Products →</Link></div>
-        {isLoading ? <Loader /> : error ? <Message variant="danger">{error?.data?.message || error.error || 'Unable to load products. Please try again.'}</Message> : products.length === 0 ? <div className="empty-state"><h3>The collection is on its way</h3><p>Check back soon for available products.</p></div> : (
+        {isLoading ? <Loader /> : error ? <ApiError error={error} onRetry={refetch} /> : products.length === 0 ? <div className="empty-state"><h3>The collection is on its way</h3><p>Check back soon for available products.</p></div> : (
           <Row className="g-4">{products.map((product) => <Col key={product._id} xs={12} sm={6} lg={4} xl={3}><Product product={product} /></Col>)}</Row>
         )}
       </section>

@@ -1,4 +1,6 @@
 import formatCurrency from '../utils/formatCurrency';
+import OrderTimeline from '../components/OrderTimeline';
+import { nextFulfillment } from '../utils/commerceState';
 import { Link, useParams } from "react-router-dom";
 import Message from "../components/Message";
 import { Row, Col, ListGroup, Image, Button, Card } from "react-bootstrap";
@@ -10,7 +12,7 @@ import {
   useGetOrderDetailsQuery,
   useCreateRazorpayOrderMutation,
   useVerifyRazorpayPaymentMutation,
-  useDeleverOrderMutation,
+  useUpdateFulfillmentMutation,
 } from "../slices/ordersApiSlice";
 
 const OrderScreen = () => {
@@ -18,7 +20,7 @@ const OrderScreen = () => {
   const { data: order, isLoading, error, refetch } = useGetOrderDetailsQuery(orderId);
   const [createRazorpayOrder, { isLoading: loadingRazorpayOrder }] = useCreateRazorpayOrderMutation();
   const [verifyRazorpayPayment, { isLoading: verifyingPayment }] = useVerifyRazorpayPaymentMutation();
-  const [deleverOrder, { isLoading: loadingDeliver }] = useDeleverOrderMutation();
+  const [updateFulfillment, { isLoading: loadingDeliver }] = useUpdateFulfillmentMutation();
   const { userInfo } = useSelector((state) => state.auth);
 
   const payNowHandler = async () => {
@@ -69,9 +71,8 @@ const OrderScreen = () => {
 
   const deliverOrderHandler = async () => {
     try {
-      await deleverOrder(orderId).unwrap();
-      refetch();
-      toast.success("Order Delivered");
+      await updateFulfillment({ orderId, orderStatus: nextFulfillment(order) }).unwrap();
+      toast.success('Fulfillment updated');
     } catch (err) {
       toast.error(err?.data?.message || err?.error || "Unable to update delivery status");
     }
@@ -83,6 +84,7 @@ const OrderScreen = () => {
   return (
     <>
       <h1>Your order</h1><p className="text-muted order-reference">Order reference: {order._id}</p>
+      <OrderTimeline order={order} />
       <Row>
         <Col md={8}>
           <ListGroup variant="flush">
@@ -130,11 +132,11 @@ const OrderScreen = () => {
                   </Button>
                 </ListGroup.Item>
               )}
-              {userInfo?.isAdmin && order.isPaid && !order.isDelivered && (
+              {userInfo?.isAdmin && nextFulfillment(order) && (
                 <ListGroup.Item>
                   {loadingDeliver && <Loader />}
                   <Button onClick={deliverOrderHandler} type="button" className="btn btn-primary" disabled={loadingDeliver}>
-                    Mark as Delivered
+                    Mark as {nextFulfillment(order)}
                   </Button>
                 </ListGroup.Item>
               )}

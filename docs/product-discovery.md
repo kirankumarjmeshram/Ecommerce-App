@@ -12,6 +12,7 @@ The primary shopping route is `/products`. Home shows four latest products, data
 | category | Exact stored category; max 100 characters |
 | minPrice, maxPrice | Inclusive non-negative bounds; minimum cannot exceed maximum |
 | inStock | true selects stock greater than zero; false includes all stock states |
+| rating | 1, 2, 3 or 4; selects actual ratings greater than or equal to this value |
 | sort | newest (default), price_asc, price_desc, rating_desc |
 | page | Positive integer; default 1, maximum 100000 |
 | limit | Positive integer; default 12, maximum 100 |
@@ -41,3 +42,15 @@ Isolated backend tests cover query combinations, metadata, literal search, sort,
 Manual checks: Home → category → Products; header search; category/price/stock combinations; sorting; Next with limit=2; refresh and Back; empty results; product detail and cart. Check 320/375/768/1024/1440px. Payment logic is outside this phase.
 
 Substring regex and offset pagination suit this small catalog; this is not full-text relevance search or a large-scale search service.
+
+## Catalog hardening
+
+Category dropdown destinations use separate pathname/search fields because the installed react-router-bootstrap LinkContainer treats string destinations as a pathname. Native React Router homepage and pagination links accept complete strings.
+
+Search is intentionally submit-only: typing does not update the URL or request products. Enter or the Search button submits one trimmed, encoded keyword; empty submission clears discovery state to `/products`. There is no live-search debounce timer to cancel or duplicate navigation. Catalog queries come exclusively from URL state; RTK Query `currentData` prevents previous-filter results showing under a new filter. Same-query refresh keeps cards visible with an updating indicator; new queries show stable placeholders rather than stale cards.
+
+The star filter is applied with the other filters and resets page. Rating participates in normalized cache keys; values 3 and 4 and their category/search combinations remain isolated. Existing CRUD invalidation is unchanged.
+
+Virtualization is intentionally not added: customer and admin grids render 12 items by default, and the API caps pages at 100. The current small category list also does not warrant a virtualized menu.
+
+An outer React error boundary and a router error element show recovery actions without exception details. Unknown routes show a dedicated 404; invalid/missing product IDs show Product not found. API outages use safe messages and Retry; 400 query errors offer Clear filters; empty matches remain a separate state. Price-range validation is inline, associated with inputs and checked before URL updates. Category API errors leave the static navigation available.

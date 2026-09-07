@@ -1,6 +1,8 @@
 import asyncHandler from '../middleware/asyncHandler.js';
 import mongoose from 'mongoose';
 import User from '../models/userModel.js';
+import Order from '../models/orderModel.js';
+import Product from '../models/productModel.js';
 import generateToken from '../utils/generateToken.js';
 import { getJwtCookieOptions } from '../utils/generateToken.js';
 
@@ -11,6 +13,7 @@ const toSafeUser = (user) => ({
   name: user.name,
   email: user.email,
   isAdmin: user.isAdmin,
+  status: user.status || 'active',
   createdAt: user.createdAt,
 });
 
@@ -49,6 +52,7 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email: typeof email === 'string' ? email.trim().toLowerCase() : email });
 
   if (user && (await user.matchPassword(password))) {
+    if (user.status === 'suspended') { res.status(403); throw new Error('This account is suspended. Contact the store administrator.'); }
     generateToken(res, user._id);
     res.json(toSafeUser(user));
   } else {
@@ -120,9 +124,11 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 
 const getUsers = asyncHandler(async (req, res) => {
   const users = await User.find({})
-    .select('_id name email isAdmin createdAt')
+    .select('_id name email isAdmin status createdAt')
     .sort({ createdAt: -1 });
-  res.json(users);
+  const counts = await Order.aggregate([{ $group: { _id: '$user', count: { $sum: 1 } } }]);
+  const countsByUser = new Map(counts.map((item) => [String(item._id), item.count]));
+  res.json(users.map((user) => ({ ...toSafeUser(user), orderCount: countsByUser.get(String(user._id)) || 0 })));
 });
 
 const deleteUser = asyncHandler(async (req, res) => {
@@ -139,13 +145,17 @@ const deleteUser = asyncHandler(async (req, res) => {
     throw new Error('User not found');
   }
 
+  if (await Order.exists({ user: user._id }) || await Product.exists({ 'reviews.user': user._id })) {
+    res.status(409);
+    throw new Error('This account has order or review history and cannot be permanently deleted. Suspend the account instead.');
+  }
   await user.deleteOne();
   res.json({ message: 'User removed' });
 });
 
 const getUserById = asyncHandler(async (req, res) => {
   const userId = getValidUserId(req.params.id, res);
-  const user = await User.findById(userId).select('_id name email isAdmin createdAt');
+  const user = await User.findById(userId).select('_id name email isAdmin status createdAt');
   if (!user) {
     res.status(404);
     throw new Error('User not found');
@@ -179,6 +189,12 @@ const updateUser = asyncHandler(async (req, res) => {
       throw new Error('isAdmin must be a boolean');
     }
     user.isAdmin = req.body.isAdmin;
+  }
+
+  if (req.body.status !== undefined) {
+    if (!['active', 'suspended'].includes(req.body.status)) { res.status(400); throw new Error('Invalid account status'); }
+    if (req.body.status === 'suspended' && (user.isAdmin || user._id.equals(req.user._id))) { res.status(400); throw new Error('Administrator accounts cannot be suspended.'); }
+    user.status = req.body.status;
   }
 
   try {

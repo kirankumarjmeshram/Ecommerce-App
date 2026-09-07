@@ -1,7 +1,13 @@
 export const catalogParams = (search) => Object.fromEntries(
   [...new URLSearchParams(search)].filter(([key, value]) =>
-    ['keyword', 'category', 'minPrice', 'maxPrice', 'inStock', 'sort', 'page', 'limit'].includes(key) && value !== '')
+    ['keyword', 'category', 'minPrice', 'maxPrice', 'inStock', 'rating', 'sort', 'page', 'limit'].includes(key) && value !== '')
 );
+
+// LinkContainer requires the query string separately from pathname.
+export const catalogLocation = (values = {}) => {
+  const search = new URLSearchParams(values).toString();
+  return { pathname: '/products', search: search ? `?${search}` : '' };
+};
 
 export const updateCatalogParams = (search, changes, resetPage = true) => {
   const params = new URLSearchParams(search);

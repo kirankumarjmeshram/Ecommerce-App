@@ -1,7 +1,9 @@
 import mongoose from "mongoose";
 const reviewSchema =mongoose.Schema({
     name:{type:String, required:true},
-    rating:{type: Number, required:true},
+    rating:{type: Number, required:true, min:1, max:5},
+    title: {type:String, default:''},
+    verifiedPurchase: {type:Boolean, default:false},
     comment: {type: String, required:true},
     user:{
         type: mongoose.Schema.Types.ObjectId,

@@ -1,4 +1,5 @@
 import PageHeader from '../../components/PageHeader';
+import { fulfillmentStatus } from '../../utils/commerceState';
 import formatCurrency from '../../utils/formatCurrency';
 import { LinkContainer } from "react-router-bootstrap";
 import { Table, Button } from "react-bootstrap";
@@ -26,10 +27,11 @@ const OrderListScreen = () => {
               <th>TOTAL</th>
               <th>PAID</th>
               <th>DELIVERED</th>
+              <th>FULFILLMENT</th><th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {orders.length === 0 && <tr><td colSpan={7} className="text-center py-4">No orders yet. New purchases will appear here.</td></tr>}
+            {orders.length === 0 && <tr><td colSpan={8} className="text-center py-4">No orders yet. New purchases will appear here.</td></tr>}
             {orders.map((order) => (
               <tr key={order._id}>
                 <td>{order._id}</td>
@@ -50,6 +52,7 @@ const OrderListScreen = () => {
                     <StatusBadge positive={false}>Pending</StatusBadge>
                   )}
                 </td>
+                <td>{fulfillmentStatus(order)}</td>
                 <td>
                   <LinkContainer to={`/order/${order._id}`}>
                     <Button variant="light" className="btn-sm">

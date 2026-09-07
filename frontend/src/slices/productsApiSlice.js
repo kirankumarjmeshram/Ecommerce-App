@@ -3,6 +3,19 @@ import { apiSlice } from "./apiSlice";
 
 export const productsApiSlice = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
+        getReviewEligibility: builder.query({
+            query: ({ productId }) => `/${PRODUCTS_URL}/${productId}/review-eligibility`,
+            providesTags: (result, error, { productId }) => [{ type: 'Product', id: `eligibility-${productId}` }],
+            keepUnusedDataFor: 0,
+        }),
+        saveReview: builder.mutation({
+            query: ({ productId, reviewId, ...body }) => ({ url: `/${PRODUCTS_URL}/${productId}/reviews${reviewId ? `/${reviewId}` : ''}`, method: reviewId ? 'PUT' : 'POST', body }),
+            invalidatesTags: ['Product'],
+        }),
+        deleteReview: builder.mutation({
+            query: ({ productId, reviewId }) => ({ url: `/${PRODUCTS_URL}/${productId}/reviews/${reviewId}`, method: 'DELETE' }),
+            invalidatesTags: ['Product'],
+        }),
         getProducts: builder.query({
             query: (params = {}) => ({
                 url: `/${PRODUCTS_URL}`, params,
@@ -58,3 +71,4 @@ export const productsApiSlice = apiSlice.injectEndpoints({
 });
 
 export const { useGetProductsQuery, useGetProductCategoriesQuery, useGetProductDetailQuery, useCreateProductMutation, useUpdateProductMutation, useDeleteProductMutation } = productsApiSlice;
+export const { useGetReviewEligibilityQuery, useSaveReviewMutation, useDeleteReviewMutation } = productsApiSlice;

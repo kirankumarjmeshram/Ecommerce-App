@@ -37,6 +37,9 @@ const orderSchema = mongoose.Schema({
   paidAt: { type: Date },
   isDelivered: { type: Boolean, required: true, default: false },
   deliveredAt: { type: Date },
+  orderStatus: { type: String, enum: ['Placed', 'Processing', 'Shipped', 'Delivered'], default: function () { return this.isDelivered ? 'Delivered' : 'Placed'; } },
+  processingAt: Date,
+  shippedAt: Date,
 }, {
   timestamps: true,
 });

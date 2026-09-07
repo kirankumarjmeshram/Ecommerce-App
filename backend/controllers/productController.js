@@ -81,8 +81,9 @@ const getProductCategories = asyncHandler(async (req, res) => {
   const cacheKey = createProductListCacheKey({ resource: 'categories' });
   const cached = await readCache(cacheKey, { requestId: req.id });
   if (cached) { res.set('X-Cache', 'HIT'); return res.json(cached); }
-  const categories = (await Product.distinct('category')).filter((value) => typeof value === 'string' && value.trim()).sort((a, b) => a.localeCompare(b));
-  const result = { categories };
+  const [values, bounds] = await Promise.all([Product.distinct('category'), Product.aggregate([{ $group: { _id: null, min: { $min: '$price' }, max: { $max: '$price' } } }])]);
+  const categories = values.filter((value) => typeof value === 'string' && value.trim()).sort((a, b) => a.localeCompare(b));
+  const result = { categories, priceRange: bounds.length ? { min: bounds[0].min, max: bounds[0].max } : null };
   await writeCache(cacheKey, result, { requestId: req.id });
   res.set('X-Cache', 'MISS');
   res.json(result);

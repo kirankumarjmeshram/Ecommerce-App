@@ -7,6 +7,8 @@ import {useNavigate} from 'react-router-dom';
 import {useLogoutMutation} from '../slices/usersApiSlice';
 import {logout} from '../slices/authSlice';
 import { setCartOwner } from '../slices/cartSlice';
+import { catalogLocation } from '../utils/catalogParams';
+import { useLocation } from 'react-router-dom';
 
 const Header = () => {
   const { cartItems } = useSelector((state) => state.cart);
@@ -14,7 +16,8 @@ const Header = () => {
   const { userInfo } = useSelector((state) => state.auth);
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { data: categoryData } = useGetProductCategoriesQuery();
+  const location = useLocation();
+  const { data: categoryData, error: categoryError } = useGetProductCategoriesQuery();
 
   const [logoutApiCall] = useLogoutMutation();// we can call logoutApiCall whatever we want
 
@@ -43,8 +46,8 @@ const Header = () => {
 
           <Navbar.Toggle aria-controls="basic-navbar-nav" />
           <Navbar.Collapse id="basic-navbar-nav">
-            <Form className="header-search" role="search" onSubmit={(event) => { event.preventDefault(); const keyword = new FormData(event.currentTarget).get('keyword').trim(); navigate(`/products?${new URLSearchParams(keyword ? { keyword } : {})}`); }}>
-              <Form.Control name="keyword" type="search" maxLength={100} aria-label="Search products" placeholder="Search products…" />
+            <Form className="header-search" role="search" onSubmit={(event) => { event.preventDefault(); const keyword = new FormData(event.currentTarget).get('keyword').trim(); navigate(catalogLocation(keyword ? { keyword } : {})); }}>
+              <Form.Control key={location.search} defaultValue={new URLSearchParams(location.search).get('keyword') || ''} name="keyword" type="search" maxLength={100} aria-label="Search products" placeholder="Search products…" />
               <Button type="submit" variant="light">Search</Button>
             </Form>
             <Nav className="ms-auto">
@@ -52,7 +55,7 @@ const Header = () => {
               <LinkContainer to="/products"><Nav.Link>Products</Nav.Link></LinkContainer>
               <NavDropdown title="Categories" id="categories-menu">
                 <LinkContainer to="/products"><NavDropdown.Item>All Categories</NavDropdown.Item></LinkContainer>
-                {categoryData?.categories.map((category) => <LinkContainer key={category} to={`/products?${new URLSearchParams({ category })}`}><NavDropdown.Item>{category}</NavDropdown.Item></LinkContainer>)}
+                {!categoryError && categoryData?.categories.map((category) => <LinkContainer key={category} to={catalogLocation({ category })} isActive={location.pathname === '/products' && new URLSearchParams(location.search).get('category') === category}><NavDropdown.Item>{category}</NavDropdown.Item></LinkContainer>)}
               </NavDropdown>
               <LinkContainer to="/cart">
                 <Nav.Link>
