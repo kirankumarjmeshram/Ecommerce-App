@@ -1,4 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import { useState } from 'react';
 import StarSelector from './StarSelector';
 import PriceRangeFilter from './PriceRangeFilter';
 import { clampRange, validateCatalogRange } from '../utils/priceRange';
@@ -21,6 +22,32 @@ test('price fields and slider synchronize without applying each keystroke', () =
 test('price utilities enforce catalog bounds', () => {
   expect(clampRange(120, 10, 100)).toBe(100); expect(validateCatalogRange('0', '50', { min: 10, max: 100 })).toContain('available catalog');
   expect(validateCatalogRange('', '', { min: 10, max: 100 })).toBe('');
+});
+
+test('visible star labels select one, three and five stars and preview on hover', () => {
+  const Control = () => { const [value, setValue] = useState(0); return <StarSelector value={value} onChange={setValue} />; };
+  const { container } = render(<Control />);
+  for (const number of [1, 3, 5, 1]) {
+    const radio = screen.getAllByRole('radio')[number - 1];
+    fireEvent.click(container.querySelector(`label[for="${radio.id}"]`));
+    expect(radio.checked).toBe(true);
+    expect(screen.getByText(`${number}★ selected`)).toBeInTheDocument();
+  }
+  fireEvent.mouseEnter(container.querySelectorAll('label')[4]);
+  expect(screen.getAllByRole('radio')[0].checked).toBe(true);
+  fireEvent.mouseLeave(container.querySelector('.star-options'));
+});
+
+test('price equality is allowed, reversed values cannot apply, and blank fields clear bounds', () => {
+  const apply = jest.fn(); render(<PriceRangeFilter params={new URLSearchParams()} bounds={{ min: 10, max: 100 }} onApply={apply} />);
+  const min = screen.getByLabelText('Minimum price'); const max = screen.getByLabelText('Maximum price');
+  const submit = () => fireEvent.click(screen.getByRole('button', { name: 'Apply price range' }));
+  fireEvent.change(min, { target: { value: '50' } }); fireEvent.change(max, { target: { value: '50' } }); submit();
+  expect(apply).toHaveBeenLastCalledWith({ minPrice: '50', maxPrice: '50' });
+  apply.mockClear(); fireEvent.change(min, { target: { value: '60' } }); submit();
+  expect(apply).not.toHaveBeenCalled(); expect(screen.getByRole('alert')).toBeInTheDocument();
+  fireEvent.change(min, { target: { value: '' } }); fireEvent.change(max, { target: { value: '' } }); submit();
+  expect(apply).toHaveBeenLastCalledWith({ minPrice: '', maxPrice: '' });
 });
 test('legacy order mapping and review eligibility copy use real state', () => {
   expect(fulfillmentStatus({ isDelivered: true })).toBe('Delivered');

@@ -55,10 +55,14 @@ test('fulfillment enforces paid, sequential admin transitions and enables review
   await buyer.post(url()).send(review).expect(201);
 });
 test('suspension rejects existing sessions, reactivation restores access, history prevents deletion', async () => {
+  await purchase({ isPaid: true, isDelivered: true });
+  await buyer.post(url()).send(review).expect(201);
+  const savedReview = (await Product.findById(product._id)).reviews[0];
   await buyer.put(`/api/users/${user._id}`).send({ status: 'suspended' }).expect(403);
   await adminAgent.put(`/api/users/${user._id}`).send({ status: 'suspended' }).expect(200);
   await buyer.get('/api/users/profile').expect(403); await buyer.put('/api/users/profile').send({ name: 'Changed' }).expect(403);
   await buyer.post('/api/orders').send({}).expect(403); await buyer.post(url()).send(review).expect(403);
+  await buyer.put(`${url()}/${savedReview._id}`).send({ ...review, rating: 1 }).expect(403);
   await adminAgent.put(`/api/users/${user._id}`).send({ status: 'active' }).expect(200);
   await buyer.get('/api/users/profile').expect(200);
   await purchase(); await adminAgent.delete(`/api/users/${user._id}`).expect(409);

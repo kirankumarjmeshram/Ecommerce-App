@@ -9,6 +9,7 @@
 .filter-controls { display: grid; gap: 1.2rem; margin-top: 1rem; }
 .star-selector legend,.filter-controls legend { font-size: .9rem; font-weight: 600; }
 .star-options { display: flex; gap: .2rem; }
+.star-options input.visually-hidden { pointer-events: none; }
 .star-options label { display: grid; place-items: center; width: 32px; height: 36px; cursor: pointer; color: #956515; font-size: 1.3rem; border-radius: 4px; }
 .star-options input:focus-visible + label { outline: 3px solid #175b4e; outline-offset: 2px; }
 .dual-range { position: relative; height: 42px; margin: .5rem 0; background: linear-gradient(transparent 45%, #cad8d0 45%, #cad8d0 55%, transparent 55%); }
