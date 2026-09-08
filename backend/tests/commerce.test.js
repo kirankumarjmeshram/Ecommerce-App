@@ -46,8 +46,11 @@ test('fulfillment enforces paid, sequential admin transitions and enables review
   await adminAgent.put(endpoint).send({ orderStatus: 'Processing', isPaid: true }).expect(409);
   expect((await Order.findById(order._id)).isPaid).toBe(false);
   await Order.findByIdAndUpdate(order._id, { isPaid: true });
+  await adminAgent.put(endpoint).send({ orderStatus: 'Shipped' }).expect(409);
   await adminAgent.put(endpoint).send({ orderStatus: 'Delivered' }).expect(409);
-  for (const orderStatus of ['Processing', 'Shipped', 'Delivered']) await adminAgent.put(endpoint).send({ orderStatus, deliveredAt: '2000-01-01' }).expect(200);
+  await adminAgent.put(endpoint).send({ orderStatus: 'Processing' }).expect(200);
+  await adminAgent.put(endpoint).send({ orderStatus: 'Delivered' }).expect(409);
+  for (const orderStatus of ['Shipped', 'Delivered']) await adminAgent.put(endpoint).send({ orderStatus, deliveredAt: '2000-01-01' }).expect(200);
   const saved = await Order.findById(order._id); expect(saved.isDelivered).toBe(true); expect(saved.deliveredAt.getFullYear()).toBe(new Date().getFullYear());
   await adminAgent.put(endpoint).send({ orderStatus: 'Processing' }).expect(409);
   await buyer.get(`/api/orders/${order._id}`).expect(200);
@@ -65,7 +68,8 @@ test('suspension rejects existing sessions, reactivation restores access, histor
   await buyer.put(`${url()}/${savedReview._id}`).send({ ...review, rating: 1 }).expect(403);
   await adminAgent.put(`/api/users/${user._id}`).send({ status: 'active' }).expect(200);
   await buyer.get('/api/users/profile').expect(200);
-  await purchase(); await adminAgent.delete(`/api/users/${user._id}`).expect(409);
+  await purchase(); const blocked = await adminAgent.delete(`/api/users/${user._id}`).expect(409);
+  expect(blocked.body.message).toContain('Suspend the account instead');
   const unused = await User.create({ name: 'Unused', email: 'unused@test.local', password: 'Password123!' });
   await adminAgent.delete(`/api/users/${unused._id}`).expect(200);
 });

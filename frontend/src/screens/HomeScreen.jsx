@@ -12,6 +12,7 @@ const HomeScreen = () => {
   const reducedMotion = useReducedMotion();
   const [paused, setPaused] = useState(false);
   const [focused, setFocused] = useState(false);
+  const [hovered, setHovered] = useState(false);
   const { data, isLoading, error, refetch } = useGetProductsQuery({ limit: 4, sort: 'newest' });
   const { data: categoryData, error: categoryError } = useGetProductCategoriesQuery();
   const products = data?.products || [];
@@ -19,7 +20,7 @@ const HomeScreen = () => {
   return (
     <>
       <button className="btn btn-link btn-sm" onClick={() => setPaused(!paused)} disabled={reducedMotion}>{reducedMotion ? 'Automatic slides disabled for reduced motion' : paused ? 'Play slides' : 'Pause slides'}</button>
-      <Carousel fade={!reducedMotion} interval={paused || focused || reducedMotion ? null : 5000} pause="hover" onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }} className="home-carousel" aria-label="ShopSphere highlights">
+      <Carousel fade={!reducedMotion} interval={paused || focused || hovered || reducedMotion ? null : 5000} pause={false} onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} onFocusCapture={() => setFocused(true)} onBlurCapture={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false); }} className="home-carousel" aria-label="ShopSphere highlights">
       <Carousel.Item><section className="store-hero" aria-labelledby="hero-title">
         <div className="hero-copy"><p className="eyebrow">The everyday edit</p>
           <h1 id="hero-title">Good finds.<br />Better everyday.</h1>

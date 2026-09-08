@@ -1,6 +1,6 @@
 # Product discovery
 
-The primary shopping route is `/products`. Home shows four latest products, database category links, and a three-slide React Bootstrap carousel with manual controls and no autoplay. Shared reduced-motion CSS disables transitions.
+The primary shopping route is `/products`. Home shows four latest products, database category links, and a three-slide React Bootstrap carousel. It advances every five seconds, pauses on hover or focus, supports manual controls and a Pause button, and disables automatic motion when the operating system requests reduced motion.
 
 ## API
 
@@ -12,24 +12,24 @@ The primary shopping route is `/products`. Home shows four latest products, data
 | category | Exact stored category; max 100 characters |
 | minPrice, maxPrice | Inclusive non-negative bounds; minimum cannot exceed maximum |
 | inStock | true selects stock greater than zero; false includes all stock states |
-| rating | 1, 2, 3 or 4; selects actual ratings greater than or equal to this value |
+| rating | 1 through 5; selects actual ratings greater than or equal to this value |
 | sort | newest (default), price_asc, price_desc, rating_desc |
 | page | Positive integer; default 1, maximum 100000 |
 | limit | Positive integer; default 12, maximum 100 |
 
 Unknown parameters, repeated/object values and invalid options return 400. Search regex metacharacters are escaped. Sorting uses an ID tie-breaker before pagination. Empty matches have pages: 0; out-of-range pages return no products with the requested page and actual total.
 
-`GET /api/products/categories` returns `{ categories: [...] }` from distinct MongoDB values. Admin inputs suggest these categories and accept new ones. There is no Category collection.
+`GET /api/products/categories` returns `{ categories: [...], priceRange: { min, max } }` from current MongoDB values. Admin inputs suggest these categories and accept new ones. There is no Category collection.
 
 ## URL and controls
 
 Example: `/products?category=Audio&minPrice=100&inStock=true&sort=price_asc&page=2`.
 
-Header search navigates to the catalog. Category, price and stock apply together. Filter/sort changes reset page; pagination preserves filters. Refresh and Back/Forward restore applied state. Clear filters resets discovery. Mobile filters stack above results and can be collapsed. Prices use the shared INR formatter.
+Header search navigates to the catalog. Category, star threshold and stock apply immediately. The dual price sliders and manual minimum/maximum inputs share draft state and apply only after validation; equality is allowed and minimum greater than maximum is rejected without changing the URL. Filter/sort changes reset page; pagination preserves filters. Refresh and Back/Forward restore applied state. Clear all resets discovery. Mobile filters stack above results and can be collapsed. Prices use the shared INR formatter.
 
 ## Redis
 
-Validated, normalized parameters form `ecommerce:products:list:v2:<signature>` keys. Defaults share a key; different filters, sort, page and limit do not. Versioning avoids old array payloads. Categories use the list prefix so product CRUD invalidates them along with lists. Detail caching, configured TTL, observability and MongoDB fallback remain unchanged.
+Validated, normalized parameters form versioned `ecommerce:products:list` keys. Defaults share a key; different rating thresholds, filters, sort, page and limit do not. Categories use the list prefix so product and review mutations invalidate them along with lists. Review mutations also invalidate the affected product-detail key. Configured TTL, observability and MongoDB fallback remain unchanged.
 
 ## Data and testing
 
